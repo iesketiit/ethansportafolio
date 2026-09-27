@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { gsap, useGSAP } from "@/lib/gsap";
+import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { hasFinePointer, prefersReducedMotion } from "@/lib/motion";
 import { domainOf, projects } from "@/data/projects";
 import Marquee from "./Marquee";
@@ -23,14 +23,45 @@ function BrowserBar({ url }: { url: string }) {
 export default function Projects() {
   const root = useRef<HTMLElement>(null);
 
-  // Parallax de las ventanas + recorte al entrar + inclinación con el scroll
+  // Proyectos apilados como cartas + parallax de las ventanas + recorte al entrar
   useGSAP(
     () => {
       if (prefersReducedMotion()) return;
-      gsap.utils.toArray<HTMLElement>(".proj").forEach((proj) => {
-        const scroll = { trigger: proj, start: "top bottom", end: "bottom top", scrub: true };
-        gsap.fromTo(proj.querySelector(".mock--back"), { yPercent: 14 }, { yPercent: -10, ease: "none", scrollTrigger: scroll });
-        gsap.fromTo(proj.querySelector(".mock--front"), { yPercent: 40 }, { yPercent: -25, ease: "none", scrollTrigger: scroll });
+      const panels = gsap.utils.toArray<HTMLElement>(".proj");
+
+      // Escritorio: cada panel se queda fijo y el siguiente sube encima;
+      // el de abajo se encoge y se oscurece
+      const mm = gsap.matchMedia();
+      mm.add("(min-width: 761px)", () => {
+        panels.forEach((proj, i) => {
+          const next = panels[i + 1];
+          if (!next) return;
+          ScrollTrigger.create({
+            trigger: proj,
+            start: "top top+=68",
+            endTrigger: next,
+            end: "top top+=68",
+            pin: true,
+            pinSpacing: false,
+          });
+          gsap.to(proj.querySelector(".proj__inner"), {
+            scale: 0.9,
+            borderRadius: 18,
+            ease: "none",
+            scrollTrigger: { trigger: next, start: "top bottom", end: "top top+=68", scrub: true },
+          });
+          gsap.to(proj.querySelector(".proj__shade"), {
+            opacity: 0.65,
+            ease: "none",
+            scrollTrigger: { trigger: next, start: "top bottom", end: "top top+=68", scrub: true },
+          });
+        });
+      });
+
+      panels.forEach((proj) => {
+        const scroll = { trigger: proj, start: "top bottom", end: "top top+=68", scrub: true };
+        gsap.fromTo(proj.querySelector(".mock--back"), { yPercent: 14 }, { yPercent: -6, ease: "none", scrollTrigger: scroll });
+        gsap.fromTo(proj.querySelector(".mock--front"), { yPercent: 40 }, { yPercent: -5, ease: "none", scrollTrigger: scroll });
         gsap.fromTo(
           proj.querySelector(".proj__stage"),
           { clipPath: "inset(10% 6% 10% 6% round 12px)" },
@@ -112,6 +143,7 @@ export default function Projects() {
       <div className="projs">
         {projects.map((p) => (
           <article className="proj" key={p.slug}>
+            <div className="proj__inner">
             <div className="proj__info">
               <p className="proj__cat proj__reveal">{p.category}</p>
               <h3 className="proj__name proj__reveal">{p.name}</h3>
@@ -148,11 +180,13 @@ export default function Projects() {
                 <span className="lens__coords" />
               </span>
             </TransitionLink>
+            <span className="proj__shade" aria-hidden="true" />
+            </div>
           </article>
         ))}
       </div>
 
-      <Marquee items={projects.map((p) => p.name)} />
+      <Marquee items={projects.map((p) => p.name)} trail={projects} />
     </section>
   );
 }

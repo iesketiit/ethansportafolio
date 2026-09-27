@@ -1,4 +1,5 @@
 import SplitReveal from "./SplitReveal";
+import DotField from "./DotField";
 
 const services = [
   {
@@ -22,6 +23,7 @@ const services = [
 export default function Services() {
   return (
     <section className="section" id="servicios" data-tone="light">
+      <DotField />
       <div className="section__head">
         <SplitReveal text="Qué hago" className="h2" effect="blur" />
       </div>

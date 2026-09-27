@@ -440,13 +440,22 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 .work__head { padding-inline: var(--pad); }
 .projs { border-top: 1px solid var(--rule); }
 
-.proj {
+.proj { position: relative; }
+.proj__inner {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   min-height: clamp(30rem, 46vw, 46rem);
+  overflow: hidden;
   border-bottom: 1px solid var(--rule);
+  transform-origin: 50% 0;
+  will-change: transform;
 }
-.proj:nth-child(even) { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+.proj:nth-child(even) .proj__inner { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+.proj__shade { position: absolute; inset: 0; z-index: 5; background: #000; opacity: 0; pointer-events: none; }
+@media (min-width: 761px) {
+  .proj__inner { height: calc(100svh - 68px); min-height: 0; }
+}
 .proj:nth-child(even) .proj__info { order: 2; }
 
 .proj__info {
@@ -557,7 +566,6 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 .contact__bubbles { position: absolute; inset: 0; pointer-events: none; }
 .bubble {
   position: absolute;
-  translate: -50% -50%;
   font-family: var(--font-display);
   font-weight: 500;
   line-height: 1;
@@ -706,8 +714,8 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 /* ---------- Tinta que se derrama al cambiar de sección ---------- */
 .ink-spread { position: fixed; inset: 0; z-index: 0; pointer-events: none; will-change: clip-path; }
 
-/* ---------- Rastro de pluma del cursor ---------- */
-.ink-trail {
+/* ---------- Salpicadura de tinta al hacer clic ---------- */
+.ink-splash {
   position: fixed;
   inset: 0;
   z-index: 98;
@@ -722,7 +730,6 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
   position: absolute;
   z-index: 80;
   width: clamp(160px, 18vw, 260px);
-  translate: -50% -60%;
   color: var(--fg);
   pointer-events: none;
 }
@@ -779,18 +786,6 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 .preloader__sig .signature__ink path { stroke-width: 1.1; }
 .pen { will-change: transform, opacity; }
 
-/* ---------- Pluma que escribe con el scroll ---------- */
-.scroll-pen { position: absolute; top: 0; left: 0; z-index: 0; overflow: visible; pointer-events: none; }
-.scroll-pen__line {
-  fill: none;
-  stroke: var(--fg);
-  stroke-opacity: 0.45;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.scroll-pen__pen { transition: opacity 0.3s; }
-
 /* ---------- Tinta invisible (lámpara UV) ---------- */
 .uv {
   --mx: -9999px;
@@ -838,6 +833,50 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 .drop { border-radius: 50%; opacity: 0; }
 .drip-pool { height: 9px; border-radius: 999px; transform-origin: center; }
 
+/* ---------- Rastro de capturas sobre la cinta ---------- */
+.marquee--trail { position: relative; z-index: 2; }
+.trail-card {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 85;
+  width: clamp(180px, 16vw, 260px);
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #1a1a1a;
+  box-shadow: 0 24px 50px -16px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+.trail-card img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+
+/* ---------- Palabra gigante de fondo (Sobre mí) ---------- */
+#sobre-mi { overflow: clip; }
+.ghost-word {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  z-index: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(5rem, 15vw, 15rem);
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--fg);
+  opacity: 0;
+  pointer-events: none;
+}
+.about__lead,
+.about__grid { position: relative; z-index: 1; }
+.row--path { transition: padding 0.5s var(--ease); }
+@media (hover: hover) {
+  .row--path:hover { padding-left: 1rem; }
+}
+
+/* ---------- Malla magnética (Servicios) ---------- */
+.dot-field { position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; }
+#servicios > :not(.dot-field) { position: relative; z-index: 1; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 760px) {
   .section__head { flex-direction: column; align-items: flex-start; }
@@ -852,8 +891,8 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
   .footer__row { flex-wrap: wrap; }
   .case__frame-wrap { height: 80svh; }
 
-  .proj,
-  .proj:nth-child(even) { grid-template-columns: 1fr; min-height: 0; }
+  .proj__inner,
+  .proj:nth-child(even) .proj__inner { grid-template-columns: 1fr; min-height: 0; }
   .proj:nth-child(even) .proj__info { order: 0; }
   .proj__stage { aspect-ratio: 4 / 3.4; }
   .mock--back { width: 78%; left: 5%; }
@@ -868,6 +907,6 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
     transition: none !important;
   }
   .browser__view { overflow-y: auto; }
-  .ink-trail,
+  .ink-splash,
   .lens { display: none; }
 }

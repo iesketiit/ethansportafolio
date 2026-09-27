@@ -69,7 +69,7 @@ export default function Preloader() {
           },
           0.2,
         )
-        .to(sig.current, { scale: 0.92, opacity: 0, filter: "blur(10px)", duration: 0.7, ease: "power3.in" }, "+=0.2")
+        .to(sig.current, { scale: 0.94, opacity: 0, duration: 0.6, ease: "power3.in" }, "+=0.2")
         .to(".preloader__foot", { opacity: 0, duration: 0.4 }, "<")
         .to(
           root.current,
@@ -77,7 +77,18 @@ export default function Preloader() {
           "-=0.25",
         );
 
-      return () => html.classList.remove("is-loading");
+      // Clic o tecla: la intro se adelanta. Seguro: si algo tarda de más, termina sola.
+      const skip = () => tl.timeScale(4);
+      window.addEventListener("pointerdown", skip, { once: true });
+      window.addEventListener("keydown", skip, { once: true });
+      const failsafe = window.setTimeout(() => tl.progress(1), (tl.duration() + 2.5) * 1000);
+
+      return () => {
+        window.clearTimeout(failsafe);
+        window.removeEventListener("pointerdown", skip);
+        window.removeEventListener("keydown", skip);
+        html.classList.remove("is-loading");
+      };
     },
     { scope: root },
   );

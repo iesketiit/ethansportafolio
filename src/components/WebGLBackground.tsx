@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { prefersReducedMotion } from "@/lib/motion";
+import { onIntroDone, prefersReducedMotion } from "@/lib/motion";
 
 const vertexShader = /* glsl */ `
   void main() {
@@ -180,10 +180,19 @@ export default function WebGLBackground() {
       renderer.render(scene, camera);
       if (running && !reduced) raf = requestAnimationFrame(render);
     };
+
+    // Mientras la pluma firma, el fondo no se anima: todo el rendimiento va a la firma
+    running = false;
     render();
+    const offIntro = onIntroDone(() => {
+      if (reduced || document.hidden) return;
+      running = true;
+      prev = performance.now();
+      raf = requestAnimationFrame(render);
+    });
 
     const onVisibility = () => {
-      if (reduced) return;
+      if (reduced || !window.__ethanIntroDone) return;
       running = !document.hidden;
       cancelAnimationFrame(raf);
       if (running) raf = requestAnimationFrame(render);
@@ -191,6 +200,7 @@ export default function WebGLBackground() {
     document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
+      offIntro();
       running = false;
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);

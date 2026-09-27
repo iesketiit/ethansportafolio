@@ -1,30 +1,15 @@
 "use client";
 
-import { forwardRef, useId } from "react";
+import { forwardRef } from "react";
 import { signature } from "@/data/signature";
 
 type Props = { className?: string; withPen?: boolean };
 
 /** Firma en SVG. Se anima con drawSignature(); withPen agrega la pluma que escribe. */
 const Signature = forwardRef<SVGSVGElement, Props>(function Signature({ className = "", withPen = false }, ref) {
-  const id = useId().replace(/:/g, "");
-  const inkId = `ink-${id}`;
-  const blurId = `blur-${id}`;
-
   return (
     <svg ref={ref} className={`signature ${className}`} viewBox={signature.viewBox} role="img" aria-label="Firma de Ethan S">
-      <defs>
-        {/* Bordes irregulares, como tinta sobre papel */}
-        <filter id={inkId} filterUnits="userSpaceOnUse" x="-20" y="-20" width="190" height="90">
-          <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="7" result="noise" />
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.45" />
-        </filter>
-        <filter id={blurId} x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="0.9" />
-        </filter>
-      </defs>
-
-      <g className="signature__ink" transform={signature.transform} filter={`url(#${inkId})`}>
+      <g className="signature__ink" transform={signature.transform}>
         {signature.paths.map((d, i) => (
           <path key={i} d={d} />
         ))}
@@ -32,7 +17,7 @@ const Signature = forwardRef<SVGSVGElement, Props>(function Signature({ classNam
 
       {withPen && (
         <g className="pen" style={{ opacity: 0 }}>
-          <g className="pen__shadow" filter={`url(#${blurId})`}>
+          <g className="pen__shadow">
             <rect x="0" y="-1.9" width="36" height="3.8" rx="1.9" fill="#000" />
           </g>
           <g className="pen__body">

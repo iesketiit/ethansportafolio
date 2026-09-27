@@ -31,6 +31,8 @@ export default function Contact() {
   // Aparición + flotación tipo burbuja
   useGSAP(
     () => {
+      // Centrado con GSAP (GSAP anula la propiedad CSS translate al animar)
+      gsap.set(".bubble", { xPercent: -50, yPercent: -50 });
       if (prefersReducedMotion()) return;
       const bubbles = gsap.utils.toArray<HTMLElement>(".bubble__inner");
 

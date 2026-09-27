@@ -2,7 +2,7 @@
 
 import Cursor from "./Cursor";
 import Effects from "./Effects";
-import InkTrail from "./InkTrail";
+import InkSplash from "./InkSplash";
 import Nav from "./Nav";
 import Preloader from "./Preloader";
 import SmoothScroll from "./SmoothScroll";
@@ -18,7 +18,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <Nav />
         {children}
         <Effects />
-        <InkTrail />
+        <InkSplash />
         <Cursor />
       </TransitionProvider>
     </SmoothScroll>

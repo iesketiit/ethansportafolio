@@ -200,41 +200,6 @@ export default function Effects() {
     };
   }, [pathname]);
 
-  // 3. Velocidad del scroll: paneles de proyecto tipo gelatina
-  useEffect(() => {
-    if (prefersReducedMotion()) return;
-    const panels = Array.from(document.querySelectorAll<HTMLElement>(".proj"));
-    const skews = panels.map((p) => gsap.quickSetter(p, "skewY", "deg"));
-    let target = 0;
-    let vel = 0;
-    let last = "";
-
-    const st = ScrollTrigger.create({
-      onUpdate: (self) => {
-        target = self.getVelocity();
-      },
-    });
-
-    const tick = () => {
-      target *= 0.88;
-      vel += (target - vel) * 0.18;
-      const v = gsap.utils.clamp(-14, 14, vel / 160);
-      const value = Math.abs(v) < 0.05 ? "0" : v.toFixed(2);
-      if (value !== last) {
-        const skew = gsap.utils.clamp(-4, 4, v * 0.35);
-        skews.forEach((set) => set(Math.abs(skew) < 0.02 ? 0 : skew));
-        last = value;
-      }
-    };
-    gsap.ticker.add(tick);
-
-    return () => {
-      gsap.ticker.remove(tick);
-      st.kill();
-      panels.forEach((p) => gsap.set(p, { skewY: 0 }));
-    };
-  }, [pathname]);
-
   // 4. Sonidos y texto que se revuelve al pasar el cursor
   useEffect(() => {
     let lastHover: Element | null = null;
@@ -276,10 +241,11 @@ export default function Effects() {
       stamp.className = "stamp";
       stamp.style.left = `${e.pageX}px`;
       stamp.style.top = `${e.pageY}px`;
-      stamp.style.rotate = `${gsap.utils.random(-10, 6)}deg`;
+
       const svg = createSignatureSvg();
       stamp.appendChild(svg);
       document.body.appendChild(stamp);
+      gsap.set(stamp, { xPercent: -50, yPercent: -60, rotation: gsap.utils.random(-10, 6) });
       stamps.push(stamp);
 
       playScratch(1);

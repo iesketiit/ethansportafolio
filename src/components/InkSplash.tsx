@@ -3,16 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { hasFinePointer, prefersReducedMotion } from "@/lib/motion";
 
-type Point = { x: number; y: number; w: number; t: number };
 type Drop = { x: number; y: number; vx: number; vy: number; r: number; t: number; life: number };
 
-const LIFE = 650; // ms que tarda en secarse la tinta
-
-/**
- * El cursor deja un trazo caligráfico: grueso si vas lento, fino si vas rápido.
- * Cada clic salpica tinta.
- */
-export default function InkTrail() {
+/** Cada clic salpica una mancha de tinta con gotitas. */
+export default function InkSplash() {
   const ref = useRef<HTMLCanvasElement>(null);
   const [enabled, setEnabled] = useState(false);
 
@@ -26,11 +20,9 @@ export default function InkTrail() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let points: Point[] = [];
     let drops: Drop[] = [];
     let raf = 0;
     let running = false;
-    let lastWidth = 4;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio, 2);
@@ -42,22 +34,7 @@ export default function InkTrail() {
 
     const draw = () => {
       const now = performance.now();
-      points = points.filter((p) => now - p.t < LIFE);
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      for (let i = 1; i < points.length; i++) {
-        const a = points[i - 1];
-        const b = points[i];
-        const life = 1 - (now - b.t) / LIFE;
-        ctx.strokeStyle = `rgba(255, 255, 255, ${life * 0.9})`;
-        ctx.lineWidth = b.w * life;
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
-        ctx.stroke();
-      }
-
       drops = drops.filter((d) => now - d.t < d.life);
       for (const d of drops) {
         const life = 1 - (now - d.t) / d.life;
@@ -70,28 +47,8 @@ export default function InkTrail() {
         ctx.arc(d.x, d.y, d.r * (0.4 + life * 0.6), 0, Math.PI * 2);
         ctx.fill();
       }
-
-      if (points.length > 1 || drops.length) raf = requestAnimationFrame(draw);
-      else {
-        running = false;
-        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-      }
-    };
-
-    const move = (e: PointerEvent) => {
-      const last = points[points.length - 1];
-      const now = performance.now();
-      let width = 4;
-      if (last) {
-        const speed = Math.hypot(e.clientX - last.x, e.clientY - last.y) / Math.max(1, now - last.t);
-        width = Math.max(0.8, Math.min(7, 7 - speed * 2.2));
-      }
-      lastWidth += (width - lastWidth) * 0.35;
-      points.push({ x: e.clientX, y: e.clientY, w: lastWidth, t: now });
-      if (!running) {
-        running = true;
-        raf = requestAnimationFrame(draw);
-      }
+      if (drops.length) raf = requestAnimationFrame(draw);
+      else running = false;
     };
 
     const splat = (e: PointerEvent) => {
@@ -117,17 +74,15 @@ export default function InkTrail() {
       }
     };
 
-    window.addEventListener("pointermove", move, { passive: true });
     window.addEventListener("pointerdown", splat, { passive: true });
     window.addEventListener("resize", resize);
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerdown", splat);
       window.removeEventListener("resize", resize);
     };
   }, [enabled]);
 
   if (!enabled) return null;
-  return <canvas className="ink-trail" ref={ref} aria-hidden="true" />;
+  return <canvas className="ink-splash" ref={ref} aria-hidden="true" />;
 }

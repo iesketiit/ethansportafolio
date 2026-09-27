@@ -92,6 +92,8 @@ main { position: relative; z-index: 1; }
 .pill--light:hover { background: #fff; }
 .pill--blue { background: var(--cobalt); color: #fff; }
 .pill--blue:hover { background: var(--cobalt-deep); }
+.pill--outline { border: 1px solid rgba(242, 240, 235, 0.55); color: #f2f0eb; }
+.pill--outline:hover { background: rgba(242, 240, 235, 0.12); }
 
 /* ---------- Fondo WebGL ---------- */
 .gl-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
@@ -478,6 +480,7 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 }
 .proj__foot { display: flex; flex-direction: column; align-items: flex-start; gap: 1.5rem; }
 .proj__foot p { max-width: 36ch; font-size: 1.0625rem; line-height: 1.5; }
+.proj__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 
 .proj__stage {
   position: relative;

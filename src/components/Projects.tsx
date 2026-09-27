@@ -219,14 +219,26 @@ export default function Projects() {
               <h3 className="proj__name proj__reveal">{p.name}</h3>
               <div className="proj__foot proj__reveal">
                 <p>{p.summary}</p>
-                <TransitionLink
-                  href={`/proyectos/${p.slug}`}
-                  className="pill pill--light"
-                  data-scramble
-                  onClick={(e) => expand(e, `/proyectos/${p.slug}`)}
-                >
-                  Ver proyecto
-                </TransitionLink>
+                <div className="proj__actions">
+                  <a
+                    className="pill pill--light"
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-scramble
+                    aria-label={`Visitar el sitio de ${p.name} (se abre en una pestaña nueva)`}
+                  >
+                    Visitar sitio
+                  </a>
+                  <TransitionLink
+                    href={`/proyectos/${p.slug}`}
+                    className="pill pill--outline"
+                    data-scramble
+                    onClick={(e) => expand(e, `/proyectos/${p.slug}`)}
+                  >
+                    Ver caso
+                  </TransitionLink>
+                </div>
               </div>
             </div>
 

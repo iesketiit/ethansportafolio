@@ -44,7 +44,25 @@ export default function Cursor() {
       gsap.to(l, { opacity: next === "view" ? 1 : 0, duration: 0.3 });
     };
 
+    let lastX = -1;
+    let lastY = -1;
+
+    const evaluate = (target: Element | null) => {
+      const viewEl = target?.closest<HTMLElement>("[data-cursor]");
+      if (viewEl) setMode("view", viewEl.dataset.cursor ?? "");
+      else if (target?.closest("a, button")) setMode("link");
+      else setMode("default");
+    };
+
+    // Al hacer scroll sin mover el mouse, lo que está debajo del cursor cambia
+    const onScroll = () => {
+      if (lastX < 0) return;
+      evaluate(document.elementFromPoint(lastX, lastY));
+    };
+
     const move = (e: PointerEvent) => {
+      lastX = e.clientX;
+      lastY = e.clientY;
       if (!shown) {
         gsap.to([d, r], { opacity: 1, duration: 0.3 });
         shown = true;
@@ -54,11 +72,7 @@ export default function Cursor() {
       xRing(e.clientX);
       yRing(e.clientY);
 
-      const target = e.target instanceof Element ? e.target : null;
-      const viewEl = target?.closest<HTMLElement>("[data-cursor]");
-      if (viewEl) setMode("view", viewEl.dataset.cursor ?? "");
-      else if (target?.closest("a, button")) setMode("link");
-      else setMode("default");
+      evaluate(e.target instanceof Element ? e.target : null);
     };
 
     const hide = () => {
@@ -69,6 +83,7 @@ export default function Cursor() {
     const up = () => gsap.to(r, { scale: 1, duration: 0.4, ease: "back.out(3)" });
 
     window.addEventListener("pointermove", move);
+    window.addEventListener("scroll", onScroll, { passive: true });
     document.documentElement.addEventListener("pointerleave", hide);
     window.addEventListener("pointerdown", down);
     window.addEventListener("pointerup", up);
@@ -76,6 +91,7 @@ export default function Cursor() {
     return () => {
       html.classList.remove("has-cursor");
       window.removeEventListener("pointermove", move);
+      window.removeEventListener("scroll", onScroll);
       document.documentElement.removeEventListener("pointerleave", hide);
       window.removeEventListener("pointerdown", down);
       window.removeEventListener("pointerup", up);

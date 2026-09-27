@@ -10,9 +10,9 @@ const path = [
 
 export default function About() {
   return (
-    <section className="section" id="sobre-mi">
+    <section className="section" id="sobre-mi" data-tone="blue">
       <div className="section__head">
-        <SplitReveal text="Sobre mí" className="h2" />
+        <SplitReveal text="Sobre mí" className="h2" effect="blur" />
       </div>
 
       <ScrubText

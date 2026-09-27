@@ -10,10 +10,19 @@ type Props = {
   as?: "h1" | "h2" | "h3" | "p";
   className?: string;
   trigger?: "scroll" | "intro";
+  /** mask: las palabras suben desde una máscara. blur: aparecen desenfocadas y se enfocan. */
+  effect?: "mask" | "blur";
   delay?: number;
 };
 
-export default function SplitReveal({ text, as = "h2", className = "", trigger = "scroll", delay = 0 }: Props) {
+export default function SplitReveal({
+  text,
+  as = "h2",
+  className = "",
+  trigger = "scroll",
+  effect = "mask",
+  delay = 0,
+}: Props) {
   const ref = useRef<HTMLElement>(null);
   const Tag = as as React.ElementType;
 
@@ -21,13 +30,26 @@ export default function SplitReveal({ text, as = "h2", className = "", trigger =
     () => {
       if (!ref.current || prefersReducedMotion()) return;
       const words = ref.current.querySelectorAll(".split__inner");
-      gsap.set(words, { yPercent: 115 });
 
-      const play = () =>
-        gsap.to(words, { yPercent: 0, duration: 1.2, ease: "power4.out", stagger: 0.06, delay });
+      let play: () => void;
+      if (effect === "blur") {
+        gsap.set(words, { opacity: 0, filter: "blur(16px)", yPercent: 35 });
+        play = () =>
+          void gsap.to(words, {
+            opacity: 1,
+            filter: "blur(0px)",
+            yPercent: 0,
+            duration: 1.4,
+            ease: "power3.out",
+            stagger: 0.09,
+            delay,
+          });
+      } else {
+        gsap.set(words, { yPercent: 115 });
+        play = () => void gsap.to(words, { yPercent: 0, duration: 1.2, ease: "power4.out", stagger: 0.06, delay });
+      }
 
       if (trigger === "intro") return onIntroDone(play);
-
       ScrollTrigger.create({ trigger: ref.current, start: "top 88%", once: true, onEnter: play });
     },
     { scope: ref },
@@ -36,7 +58,7 @@ export default function SplitReveal({ text, as = "h2", className = "", trigger =
   const lines = text.split("\n");
 
   return (
-    <Tag ref={ref} className={`split ${className}`} aria-label={text.replace(/\n/g, " ")}>
+    <Tag ref={ref} className={`split split--${effect} ${className}`} aria-label={text.replace(/\n/g, " ")}>
       {lines.map((line, li) => (
         <Fragment key={li}>
           {line.split(" ").map((word, wi) => (

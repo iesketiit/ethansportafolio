@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useRef } from "react
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/motion";
 import { useLenis } from "./SmoothScroll";
+import { playWhoosh } from "@/lib/sound";
 import { site } from "@/data/site";
 
 type Navigate = (href: string) => void;
@@ -27,6 +28,11 @@ export default function TransitionProvider({ children }: { children: React.React
   useEffect(() => {
     lenisRef.current = lenis;
   }, [lenis]);
+
+  // GSAP toma el control del transform: sin esto leería el translateY(100%) del CSS como píxeles
+  useEffect(() => {
+    if (curtain.current) gsap.set(curtain.current, { y: 0, yPercent: 100 });
+  }, []);
 
   const scrollToHash = useCallback((hash: string, immediate = false) => {
     const el = document.querySelector<HTMLElement>(hash);
@@ -65,6 +71,7 @@ export default function TransitionProvider({ children }: { children: React.React
 
       busy.current = true;
       lenisRef.current?.stop();
+      playWhoosh();
       gsap.fromTo(
         curtain.current,
         { yPercent: 100 },

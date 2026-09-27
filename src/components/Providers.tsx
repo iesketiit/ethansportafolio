@@ -1,6 +1,7 @@
 "use client";
 
 import Cursor from "./Cursor";
+import Effects from "./Effects";
 import Nav from "./Nav";
 import Preloader from "./Preloader";
 import SmoothScroll from "./SmoothScroll";
@@ -15,6 +16,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <Preloader />
         <Nav />
         {children}
+        <Effects />
         <Cursor />
       </TransitionProvider>
     </SmoothScroll>

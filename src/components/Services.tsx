@@ -21,9 +21,9 @@ const services = [
 
 export default function Services() {
   return (
-    <section className="section" id="servicios">
+    <section className="section" id="servicios" data-tone="light">
       <div className="section__head">
-        <SplitReveal text="Qué hago" className="h2" />
+        <SplitReveal text="Qué hago" className="h2" effect="blur" />
       </div>
       <ul className="rows">
         {services.map((s) => (

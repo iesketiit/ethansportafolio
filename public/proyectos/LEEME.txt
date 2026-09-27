@@ -1,8 +1,9 @@
 Capturas de los proyectos (opcional, recomendado para producción)
 
-Por cada proyecto puedes poner dos imágenes con el slug como nombre:
-  <slug>.jpg       -> vista previa (proporción 3:2, ej. 1200 x 800)
-  <slug>-full.jpg  -> página completa, larga (ancho 1440)
+Por cada proyecto puedes poner tres imágenes con el slug como nombre:
+  <slug>.jpg       -> ventana de atrás: la portada del sitio (ej. 1440 x 900)
+  <slug>-2.jpg     -> ventana de adelante: otra parte del sitio (ej. 1440 x 900)
+  <slug>-full.jpg  -> página del caso: captura larga de todo el sitio (ancho 1440)
 
 Slugs: vibe-bevvy, thirdway, white-desert, qissa, lingers, velaa, clemont
 

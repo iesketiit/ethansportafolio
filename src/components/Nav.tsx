@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import TransitionLink from "./TransitionLink";
-import { site } from "@/data/site";
+import SoundToggle from "./SoundToggle";
+import { whatsappUrl } from "@/data/site";
 
 const links = [
   { href: "/#trabajo", label: "Proyectos" },
@@ -13,6 +14,14 @@ const links = [
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -23,27 +32,37 @@ export default function Nav() {
 
   return (
     <>
-      <header className="nav">
-        <TransitionLink href="/" className="nav__logo" onClick={() => setOpen(false)}>
-          {site.name}
+      <header className={`nav ${scrolled ? "is-scrolled" : ""}`}>
+        <TransitionLink href="/" className="nav__logo" data-scramble onClick={() => setOpen(false)}>
+          Ethan [S]
         </TransitionLink>
+
         <nav aria-label="Principal">
           <ul className="nav__links">
             {links.map((l) => (
               <li key={l.href}>
-                <TransitionLink href={l.href}>{l.label}</TransitionLink>
+                <TransitionLink href={l.href} data-scramble>
+                  {l.label}
+                </TransitionLink>
               </li>
             ))}
           </ul>
         </nav>
-        <button
-          className="nav__menu"
-          aria-expanded={open}
-          aria-controls="menu-movil"
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? "Cerrar" : "Menú"}
-        </button>
+
+        <div className="nav__actions">
+          <SoundToggle />
+          <a className="pill pill--blue nav__cta" href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-scramble>
+            Cotiza aquí
+          </a>
+          <button
+            className="nav__menu"
+            aria-expanded={open}
+            aria-controls="menu-movil"
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? "Cerrar" : "Menú"}
+          </button>
+        </div>
       </header>
 
       <div id="menu-movil" className={`menu-overlay ${open ? "is-open" : ""}`} inert={!open}>
@@ -52,6 +71,9 @@ export default function Nav() {
             {l.label}
           </TransitionLink>
         ))}
+        <a className="pill pill--blue menu-overlay__cta" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+          Cotiza aquí
+        </a>
       </div>
     </>
   );

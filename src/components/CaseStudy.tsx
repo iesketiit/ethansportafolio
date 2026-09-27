@@ -84,7 +84,7 @@ export default function CaseStudy({ project, next }: { project: Project; next: P
 
       <div className="case__actions">
         <Magnetic>
-          <a className="btn-circle" href={project.url} target="_blank" rel="noopener noreferrer">
+          <a className="pill pill--blue" data-scramble href={project.url} target="_blank" rel="noopener noreferrer">
             Visitar sitio
           </a>
         </Magnetic>

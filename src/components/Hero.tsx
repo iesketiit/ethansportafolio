@@ -68,7 +68,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="hero" id="inicio" ref={root}>
+    <section className="hero" id="inicio" data-tone="dark" ref={root}>
       <p className="hero__intro hero__fade">
         Comunicador social y desarrollador web. Formado en Columbia University, con experiencia profesional en Japón.
       </p>

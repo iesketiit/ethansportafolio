@@ -3,7 +3,8 @@
 import { useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { markIntroDone, prefersReducedMotion } from "@/lib/motion";
-import { site } from "@/data/site";
+import { drawSignature } from "@/lib/signature";
+import Signature from "./Signature";
 
 const SEEN_KEY = "ethan:seen";
 
@@ -19,18 +20,19 @@ function writeSeen() {
   try {
     sessionStorage.setItem(SEEN_KEY, "1");
   } catch {
-    /* sin almacenamiento: no pasa nada */
+    /* sin almacenamiento */
   }
 }
 
 export default function Preloader() {
   const root = useRef<HTMLDivElement>(null);
+  const sig = useRef<SVGSVGElement>(null);
   const count = useRef<HTMLSpanElement>(null);
   const [visible, setVisible] = useState(true);
 
   useGSAP(
     () => {
-      if (readSeen() || prefersReducedMotion()) {
+      if (readSeen() || prefersReducedMotion() || !sig.current) {
         setVisible(false);
         markIntroDone();
         return;
@@ -38,10 +40,13 @@ export default function Preloader() {
 
       const html = document.documentElement;
       html.classList.add("is-loading");
-      const progress = { v: 0 };
+
       // Se avisa fuera del contexto de GSAP: si no, las animaciones del hero
       // quedarían dentro de este contexto y se revertirían al desmontar el preloader.
       const releaseIntro = () => window.setTimeout(markIntroDone, 0);
+
+      const draw = drawSignature(sig.current, 2.8);
+      const progress = { v: 0 };
 
       const tl = gsap.timeline({
         onComplete: () => {
@@ -51,23 +56,26 @@ export default function Preloader() {
         },
       });
 
-      tl.from(".preloader__letter", { yPercent: 110, stagger: 0.06, duration: 1, ease: "power4.out" })
+      tl.add(draw, 0.2)
         .to(
           progress,
           {
             v: 100,
-            duration: 2,
-            ease: "power2.inOut",
+            duration: draw.duration(),
+            ease: "none",
             onUpdate: () => {
               if (count.current) count.current.textContent = String(Math.round(progress.v)).padStart(3, "0");
             },
           },
-          0,
+          0.2,
         )
-        .to(".preloader__bar", { scaleX: 1, duration: 2, ease: "power2.inOut" }, 0)
-        .to(".preloader__letter", { yPercent: -110, stagger: 0.04, duration: 0.6, ease: "power3.in" }, "+=0.15")
+        .to(sig.current, { scale: 0.92, opacity: 0, filter: "blur(10px)", duration: 0.7, ease: "power3.in" }, "+=0.35")
         .to(".preloader__foot", { opacity: 0, duration: 0.4 }, "<")
-        .to(root.current, { yPercent: -100, duration: 1.1, ease: "power4.inOut", onStart: releaseIntro }, "-=0.2");
+        .to(
+          root.current,
+          { clipPath: "inset(0% 0% 100% 0%)", duration: 1.1, ease: "power4.inOut", onStart: releaseIntro },
+          "-=0.25",
+        );
 
       return () => html.classList.remove("is-loading");
     },
@@ -78,20 +86,13 @@ export default function Preloader() {
 
   return (
     <div className="preloader" ref={root} aria-hidden="true">
-      <div className="preloader__name">
-        {Array.from(site.name).map((ch, i) => (
-          <span className="preloader__letter" key={i}>
-            {ch === " " ? "\u00A0" : ch}
-          </span>
-        ))}
-      </div>
+      <Signature ref={sig} className="preloader__sig" />
       <div className="preloader__foot">
         <span>Desarrollo web</span>
         <span className="preloader__count" ref={count}>
           000
         </span>
       </div>
-      <div className="preloader__bar" />
     </div>
   );
 }

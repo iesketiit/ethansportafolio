@@ -1,79 +1,134 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { gsap } from "@/lib/gsap";
-import { hasFinePointer } from "@/lib/motion";
-import { projects } from "@/data/projects";
+import { useEffect, useRef } from "react";
+import { gsap, useGSAP } from "@/lib/gsap";
+import { hasFinePointer, prefersReducedMotion } from "@/lib/motion";
+import { domainOf, projects } from "@/data/projects";
+import Marquee from "./Marquee";
 import ProjectImage from "./ProjectImage";
 import SplitReveal from "./SplitReveal";
 import TransitionLink from "./TransitionLink";
 
-export default function Projects() {
-  const preview = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(-1);
-  const [fine, setFine] = useState(false);
+function BrowserBar({ url }: { url: string }) {
+  return (
+    <div className="mock__bar">
+      <span />
+      <span />
+      <span />
+      <em>{domainOf(url)}</em>
+    </div>
+  );
+}
 
+export default function Projects() {
+  const root = useRef<HTMLElement>(null);
+
+  // Parallax de las ventanas + recorte al entrar + inclinación con el scroll
+  useGSAP(
+    () => {
+      if (prefersReducedMotion()) return;
+      gsap.utils.toArray<HTMLElement>(".proj").forEach((proj) => {
+        const scroll = { trigger: proj, start: "top bottom", end: "bottom top", scrub: true };
+        gsap.fromTo(proj.querySelector(".mock--back"), { yPercent: 14 }, { yPercent: -10, ease: "none", scrollTrigger: scroll });
+        gsap.fromTo(proj.querySelector(".mock--front"), { yPercent: 40 }, { yPercent: -25, ease: "none", scrollTrigger: scroll });
+        gsap.fromTo(
+          proj.querySelector(".proj__stage"),
+          { clipPath: "inset(10% 6% 10% 6% round 12px)" },
+          {
+            clipPath: "inset(0% 0% 0% 0% round 0px)",
+            ease: "none",
+            scrollTrigger: { trigger: proj, start: "top bottom", end: "top 35%", scrub: true },
+          },
+        );
+        gsap.from(proj.querySelectorAll(".proj__reveal"), {
+          opacity: 0,
+          y: 40,
+          filter: "blur(8px)",
+          duration: 1.1,
+          ease: "power3.out",
+          stagger: 0.1,
+          scrollTrigger: { trigger: proj, start: "top 70%", once: true },
+        });
+      });
+    },
+    { scope: root },
+  );
+
+  // Las ventanas se inclinan en 3D siguiendo el cursor
   useEffect(() => {
-    setFine(hasFinePointer());
+    if (!hasFinePointer() || prefersReducedMotion() || !root.current) return;
+    const stages = Array.from(root.current.querySelectorAll<HTMLElement>(".proj__stage"));
+    const cleanups = stages.map((stage) => {
+      const mocks = stage.querySelector<HTMLElement>(".proj__mocks");
+      if (!mocks) return () => {};
+      const rx = gsap.quickTo(mocks, "rotationX", { duration: 0.8, ease: "power3" });
+      const ry = gsap.quickTo(mocks, "rotationY", { duration: 0.8, ease: "power3" });
+      const move = (e: PointerEvent) => {
+        const r = stage.getBoundingClientRect();
+        ry(((e.clientX - r.left) / r.width - 0.5) * 12);
+        rx(-((e.clientY - r.top) / r.height - 0.5) * 9);
+      };
+      const leave = () => {
+        rx(0);
+        ry(0);
+      };
+      stage.addEventListener("pointermove", move);
+      stage.addEventListener("pointerleave", leave);
+      return () => {
+        stage.removeEventListener("pointermove", move);
+        stage.removeEventListener("pointerleave", leave);
+      };
+    });
+    return () => cleanups.forEach((c) => c());
   }, []);
 
-  // La vista previa sigue al cursor
-  useEffect(() => {
-    const el = preview.current;
-    if (!fine || !el) return;
-    gsap.set(el, { xPercent: -50, yPercent: -50, scale: 0.6, opacity: 0 });
-    const xTo = gsap.quickTo(el, "x", { duration: 0.7, ease: "power3" });
-    const yTo = gsap.quickTo(el, "y", { duration: 0.7, ease: "power3" });
-    const move = (e: PointerEvent) => {
-      xTo(e.clientX);
-      yTo(e.clientY);
-    };
-    window.addEventListener("pointermove", move);
-    return () => window.removeEventListener("pointermove", move);
-  }, [fine]);
-
-  useEffect(() => {
-    if (!fine || !preview.current) return;
-    gsap.to(preview.current, {
-      opacity: active >= 0 ? 1 : 0,
-      scale: active >= 0 ? 1 : 0.6,
-      duration: 0.5,
-      ease: "power3.out",
-    });
-  }, [active, fine]);
-
   return (
-    <section className="section" id="trabajo">
-      <div className="section__head">
-        <SplitReveal text={"Proyectos\nseleccionados"} className="h2" />
+    <section className="work" id="trabajo" data-tone="dark" ref={root}>
+      <div className="section__head work__head">
+        <SplitReveal text={"Proyectos\nseleccionados"} className="h2" effect="blur" />
         <p className="muted section__aside">{projects.length} sitios diseñados y desarrollados de principio a fin.</p>
       </div>
 
-      <ul className="work-list" onPointerLeave={() => setActive(-1)}>
-        {projects.map((p, i) => (
-          <li className="work-row" key={p.slug} onPointerEnter={() => setActive(i)}>
-            <TransitionLink href={`/proyectos/${p.slug}`} data-cursor="Ver">
-              <span className="work-row__name">{p.name}</span>
-              <span className="work-row__cat">{p.category}</span>
-              {!fine && (
-                <span className="work-row__thumb">
-                  <ProjectImage project={p} />
-                </span>
-              )}
-            </TransitionLink>
-          </li>
-        ))}
-      </ul>
-
-      {fine && (
-        <div className="work-preview" ref={preview} aria-hidden="true">
-          {projects.map((p, i) => (
-            <div className={`work-preview__item ${i === active ? "is-active" : ""}`} key={p.slug}>
-              <ProjectImage project={p} eager />
+      <div className="projs">
+        {projects.map((p) => (
+          <article className="proj" key={p.slug}>
+            <div className="proj__info">
+              <p className="proj__cat proj__reveal">{p.category}</p>
+              <h3 className="proj__name proj__reveal">{p.name}</h3>
+              <div className="proj__foot proj__reveal">
+                <p>{p.summary}</p>
+                <TransitionLink href={`/proyectos/${p.slug}`} className="pill pill--light" data-scramble>
+                  Ver proyecto
+                </TransitionLink>
+              </div>
             </div>
-          ))}
-        </div>
-      )}
+
+            <TransitionLink
+              href={`/proyectos/${p.slug}`}
+              className="proj__stage"
+              data-cursor="Ver"
+              aria-label={`Ver el proyecto ${p.name}`}
+            >
+              <div className="proj__mocks">
+                <div className="mock mock--back">
+                  <BrowserBar url={p.url} />
+                  <div className="mock__view">
+                    <ProjectImage project={p} variant="card" />
+                  </div>
+                </div>
+                <div className="mock mock--front">
+                  <BrowserBar url={p.url} />
+                  <div className="mock__view">
+                    <ProjectImage project={p} variant="mid" />
+                  </div>
+                </div>
+              </div>
+            </TransitionLink>
+          </article>
+        ))}
+      </div>
+
+      <Marquee items={projects.map((p) => p.name)} />
     </section>
   );
 }

@@ -76,18 +76,34 @@ export const getNextProject = (slug: string) => {
 
 export const domainOf = (url: string) => new URL(url).hostname.replace(/^www\./, "");
 
-export type ShotVariant = "card" | "full";
+export type ShotVariant = "card" | "mid" | "full";
 
 /**
- * Orden de imágenes: primero la captura local en /public/proyectos
- * (<slug>.jpg para tarjetas, <slug>-full.jpg para la página completa)
- * y, si no existe, una captura automática del sitio en vivo.
+ * Orden de imágenes para cada captura:
+ * 1. Tu captura local en /public/proyectos (<slug>.jpg, <slug>-2.jpg, <slug>-full.jpg)
+ * 2. Captura automática del sitio en vivo (thum.io)
+ * 3. Captura automática de respaldo (microlink)
  */
 export function shotSources(project: Project, variant: ShotVariant): string[] {
-  const local = variant === "card" ? `/proyectos/${project.slug}.jpg` : `/proyectos/${project.slug}-full.jpg`;
-  const remote =
-    variant === "card"
-      ? `https://image.thum.io/get/width/1200/crop/800/noanimate/${project.url}`
-      : `https://image.thum.io/get/width/1440/crop/4200/noanimate/${project.url}`;
-  return [local, remote];
+  const local = {
+    card: `/proyectos/${project.slug}.jpg`,
+    mid: `/proyectos/${project.slug}-2.jpg`,
+    full: `/proyectos/${project.slug}-full.jpg`,
+  }[variant];
+
+  const crop = { card: 900, mid: 2600, full: 4200 }[variant];
+  const thum = `https://image.thum.io/get/width/1440/crop/${crop}/noanimate/${project.url}`;
+
+  const params = new URLSearchParams({
+    url: project.url,
+    screenshot: "true",
+    meta: "false",
+    embed: "screenshot.url",
+    "viewport.width": "1440",
+    "viewport.height": "900",
+  });
+  if (variant !== "card") params.set("screenshot.fullPage", "true");
+  const microlink = `https://api.microlink.io/?${params.toString()}`;
+
+  return [local, thum, microlink];
 }

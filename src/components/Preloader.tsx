@@ -45,7 +45,7 @@ export default function Preloader() {
       // quedarían dentro de este contexto y se revertirían al desmontar el preloader.
       const releaseIntro = () => window.setTimeout(markIntroDone, 0);
 
-      const draw = drawSignature(sig.current, 2.8);
+      const draw = drawSignature(sig.current, { duration: 3.2 });
       const progress = { v: 0 };
 
       const tl = gsap.timeline({
@@ -69,7 +69,7 @@ export default function Preloader() {
           },
           0.2,
         )
-        .to(sig.current, { scale: 0.92, opacity: 0, filter: "blur(10px)", duration: 0.7, ease: "power3.in" }, "+=0.35")
+        .to(sig.current, { scale: 0.92, opacity: 0, filter: "blur(10px)", duration: 0.7, ease: "power3.in" }, "+=0.2")
         .to(".preloader__foot", { opacity: 0, duration: 0.4 }, "<")
         .to(
           root.current,
@@ -86,7 +86,7 @@ export default function Preloader() {
 
   return (
     <div className="preloader" ref={root} aria-hidden="true">
-      <Signature ref={sig} className="preloader__sig" />
+      <Signature ref={sig} className="preloader__sig" withPen />
       <div className="preloader__foot">
         <span>Desarrollo web</span>
         <span className="preloader__count" ref={count}>

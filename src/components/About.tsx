@@ -16,6 +16,7 @@ export default function About() {
       </div>
 
       <ScrubText
+        repel
         className="about__lead"
         text="Estudié Comunicación y Ciencias Sociales en Columbia University, en Nueva York. En vacaciones sumé cursos de marketing y diseño gráfico en NextU y Harvard. Después volví a Columbia para hacer una maestría en lo que más me apasiona: el desarrollo web."
       />

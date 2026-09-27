@@ -112,3 +112,35 @@ export function playWhoosh() {
   src.start(t);
   src.stop(t + 0.85);
 }
+
+/** Rasgueo de pluma sobre papel */
+export function playScratch(duration = 0.9) {
+  if (!isSoundOn()) return;
+  const c = getCtx(true);
+  if (!c) return;
+  if (!noise) {
+    noise = c.createBuffer(1, c.sampleRate, c.sampleRate);
+    const data = noise.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  }
+  const t = c.currentTime;
+  const src = c.createBufferSource();
+  src.buffer = noise;
+  src.loop = true;
+  const hp = c.createBiquadFilter();
+  hp.type = "bandpass";
+  hp.frequency.value = 3200;
+  hp.Q.value = 0.8;
+  const gain = c.createGain();
+  gain.gain.setValueAtTime(0.0001, t);
+  // Volumen irregular: la pluma presiona y suelta
+  const steps = Math.round(duration * 14);
+  for (let i = 0; i <= steps; i++) {
+    const at = t + (i / steps) * duration;
+    gain.gain.linearRampToValueAtTime(0.012 + Math.random() * 0.03, at);
+  }
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + duration + 0.08);
+  src.connect(hp).connect(gain).connect(c.destination);
+  src.start(t);
+  src.stop(t + duration + 0.1);
+}

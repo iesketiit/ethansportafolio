@@ -19,7 +19,14 @@ export default function Hero() {
       gsap.set(".hero__fade", { opacity: 0, y: 24 });
 
       const off = onIntroDone(() => {
-        gsap.to(".hero__letter", { yPercent: 0, duration: 1.4, ease: "power4.out", stagger: 0.07 });
+        gsap.to(".hero__letter", {
+          yPercent: 0,
+          duration: 1.4,
+          ease: "power4.out",
+          stagger: 0.07,
+          // Al terminar, las letras pueden salir de su máscara para lanzarlas
+          onComplete: () => root.current?.classList.add("is-ready"),
+        });
         gsap.to(".hero__fade", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out", stagger: 0.12, delay: 0.5 });
       });
 
@@ -61,9 +68,77 @@ export default function Hero() {
 
     hero.addEventListener("pointermove", move);
     hero.addEventListener("pointerleave", leave);
+
+    // Agarra una letra, arrástrala y suéltala: sale disparada y vuelve rebotando
+    const cleanups = letters.map((letter) => {
+      let dragging = false;
+      let startX = 0;
+      let startY = 0;
+      let vx = 0;
+      let vy = 0;
+      let lastX = 0;
+      let lastY = 0;
+      let lastT = 0;
+
+      const down = (e: PointerEvent) => {
+        if (!hero.classList.contains("is-ready")) return;
+        dragging = true;
+        letter.setPointerCapture(e.pointerId);
+        gsap.killTweensOf(letter, "x,y,rotation");
+        startX = e.clientX - Number(gsap.getProperty(letter, "x"));
+        startY = e.clientY - Number(gsap.getProperty(letter, "y"));
+        lastX = e.clientX;
+        lastY = e.clientY;
+        lastT = performance.now();
+        letter.classList.add("is-grabbed");
+      };
+      const drag = (e: PointerEvent) => {
+        if (!dragging) return;
+        const now = performance.now();
+        const dt = Math.max(1, now - lastT);
+        vx = (e.clientX - lastX) / dt;
+        vy = (e.clientY - lastY) / dt;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        lastT = now;
+        const x = e.clientX - startX;
+        const y = e.clientY - startY;
+        gsap.set(letter, { x, y, rotation: gsap.utils.clamp(-35, 35, x * 0.06 + vx * 6) });
+      };
+      const up = () => {
+        if (!dragging) return;
+        dragging = false;
+        letter.classList.remove("is-grabbed");
+        const x = Number(gsap.getProperty(letter, "x"));
+        const y = Number(gsap.getProperty(letter, "y"));
+        gsap
+          .timeline()
+          .to(letter, {
+            x: x + vx * 260,
+            y: y + vy * 260,
+            rotation: `+=${vx * 90}`,
+            duration: 0.45,
+            ease: "power2.out",
+          })
+          .to(letter, { x: 0, y: 0, rotation: 0, duration: 1.8, ease: "elastic.out(1, 0.28)" });
+      };
+
+      letter.addEventListener("pointerdown", down);
+      letter.addEventListener("pointermove", drag);
+      letter.addEventListener("pointerup", up);
+      letter.addEventListener("pointercancel", up);
+      return () => {
+        letter.removeEventListener("pointerdown", down);
+        letter.removeEventListener("pointermove", drag);
+        letter.removeEventListener("pointerup", up);
+        letter.removeEventListener("pointercancel", up);
+      };
+    });
+
     return () => {
       hero.removeEventListener("pointermove", move);
       hero.removeEventListener("pointerleave", leave);
+      cleanups.forEach((c) => c());
     };
   }, []);
 
@@ -76,7 +151,7 @@ export default function Hero() {
       <h1 className="hero__name" aria-label={site.name}>
         {Array.from(site.name).map((ch, i) => (
           <span className="hero__mask" key={i} aria-hidden="true">
-            <span className="hero__letter">{ch === " " ? "\u00A0" : ch}</span>
+            <span className="hero__letter" data-cursor={ch === " " ? undefined : "Lánzame"}>{ch === " " ? "\u00A0" : ch}</span>
           </span>
         ))}
       </h1>

@@ -125,6 +125,33 @@ export default function WebGLBackground() {
       mouseTarget.set(e.clientX / window.innerWidth, 1 - e.clientY / window.innerHeight);
     };
 
+    // En el celular, inclinar el teléfono mueve la tinta
+    const onTilt = (e: DeviceOrientationEvent) => {
+      if (e.gamma === null || e.beta === null) return;
+      const x = Math.min(1, Math.max(0, 0.5 + e.gamma / 50));
+      const y = Math.min(1, Math.max(0, 0.5 - (e.beta - 45) / 50));
+      mouseTarget.set(x, y);
+    };
+    type PermissionAPI = { requestPermission?: () => Promise<string> };
+    const orientation = (window.DeviceOrientationEvent ?? null) as unknown as PermissionAPI | null;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const askPermission = () => {
+      orientation
+        ?.requestPermission?.()
+        .then((state) => {
+          if (state === "granted") window.addEventListener("deviceorientation", onTilt);
+        })
+        .catch(() => {});
+    };
+    if (coarse && orientation) {
+      if (typeof orientation.requestPermission === "function") {
+        // iOS pide permiso: se solicita con el primer toque
+        window.addEventListener("touchend", askPermission, { once: true });
+      } else {
+        window.addEventListener("deviceorientation", onTilt);
+      }
+    }
+
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", onMove);
 
@@ -155,6 +182,8 @@ export default function WebGLBackground() {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("deviceorientation", onTilt);
+      window.removeEventListener("touchend", askPermission);
       document.removeEventListener("visibilitychange", onVisibility);
       geometry.dispose();
       material.dispose();

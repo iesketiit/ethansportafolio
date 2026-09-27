@@ -17,7 +17,7 @@ export default function Footer() {
   useGSAP(
     () => {
       if (!sig.current || prefersReducedMotion()) return;
-      const tl = drawSignature(sig.current, 2.2).pause();
+      const tl = drawSignature(sig.current, { duration: 2.2 }).pause();
       ScrollTrigger.create({ trigger: root.current, start: "top 95%", once: true, onEnter: () => void tl.play() });
     },
     { scope: root },

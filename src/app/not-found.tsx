@@ -1,12 +1,13 @@
+import NotFoundArt from "@/components/NotFoundArt";
 import TransitionLink from "@/components/TransitionLink";
 
 export default function NotFound() {
   return (
-    <main className="notfound">
-      <h1 className="h2">Esta página no existe</h1>
-      <p className="muted">Puede que el enlace esté mal escrito o que el proyecto ya no esté publicado.</p>
-      <TransitionLink href="/" className="underline">
-        Ir al inicio
+    <main className="notfound" data-tone="dark">
+      <NotFoundArt />
+      <p className="muted notfound__text">Puede que el enlace esté mal escrito o que la página ya no exista.</p>
+      <TransitionLink href="/" className="pill pill--light" data-scramble>
+        Volver al inicio
       </TransitionLink>
     </main>
   );

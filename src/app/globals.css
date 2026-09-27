@@ -173,6 +173,8 @@ main { position: relative; z-index: 1; }
 .nav__links a:hover { background-size: 100% 1px; background-position: 0 100%; }
 .nav__actions { justify-self: end; display: flex; align-items: center; gap: 1.25rem; }
 .nav__menu { display: none; font-size: 0.9375rem; }
+.nav.is-menu-open { color: #fff; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.nav.is-menu-open .sound { color: #fff; }
 html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color: #0a0a0a; }
 
 .sound { display: inline-flex; align-items: center; gap: 0.55rem; font-size: 0.8125rem; color: var(--fg); }
@@ -199,10 +201,8 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
   padding: var(--pad);
   background: var(--cobalt);
   color: #fff;
-  clip-path: inset(0 0 100% 0);
-  transition: clip-path 0.8s var(--ease);
+  clip-path: circle(0px at 100% 0%);
 }
-.menu-overlay.is-open { clip-path: inset(0 0 0 0); }
 .menu-overlay a:not(.pill) {
   font-family: var(--font-display);
   font-weight: 600;
@@ -588,7 +588,7 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 }
 .contact__text { max-width: 58ch; margin-top: 2rem; font-size: clamp(1rem, 1.4vw, 1.25rem); line-height: 1.5; }
 .contact__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 2.25rem; }
-.contact__phone { margin-top: 1.75rem; font-size: 0.9375rem; }
+.contact__phone { margin-top: 0.5rem; font-size: 0.9375rem; }
 .contact__phone:hover { color: var(--fg); }
 
 /* ---------- Footer ---------- */
@@ -614,7 +614,20 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 .footer__row button:hover { color: var(--fg); }
 
 /* ---------- Caso de estudio ---------- */
-.case { padding-top: 8rem; }
+.case { padding-top: 0; }
+.case__cover { position: relative; height: 100svh; overflow: hidden; }
+.case__cover-media { position: absolute; inset: 0; transform-origin: 50% 0; will-change: transform; }
+.case__cover-media img,
+.case__cover-media .shot-fallback { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.case__cover::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 40%;
+  background: linear-gradient(to bottom, transparent, var(--bg));
+  pointer-events: none;
+}
+.case__head { padding-top: clamp(3rem, 6vw, 5rem) !important; }
 .case__head { padding: 0 var(--pad); }
 .case__cat { margin-bottom: 1.5rem; }
 .case__title {
@@ -704,12 +717,24 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 .notfound {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  gap: 1.5rem;
+  gap: 1.75rem;
   min-height: 100svh;
-  padding: var(--pad);
+  padding: 6rem var(--pad) var(--pad);
+  text-align: center;
 }
+.notfound__art { width: min(92vw, 56rem); color: var(--fg); }
+.notfound__num {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 112px;
+  letter-spacing: -6px;
+  fill: currentColor;
+}
+.notfound__art .signature__ink path { stroke-width: 1.1; }
+.notfound__art .notfound__strike { stroke: var(--cobalt); stroke-width: 3.2; }
+.notfound__text { max-width: 40ch; }
 
 /* ---------- Tinta que se derrama al cambiar de sección ---------- */
 .ink-spread { position: fixed; inset: 0; z-index: 0; pointer-events: none; will-change: clip-path; }
@@ -876,6 +901,95 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 /* ---------- Malla magnética (Servicios) ---------- */
 .dot-field { position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; }
 #servicios > :not(.dot-field) { position: relative; z-index: 1; }
+
+/* ---------- Hora en vivo ---------- */
+.clock { margin-top: 1.5rem; font-size: 0.9375rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.clock strong { color: var(--fg); font-weight: 500; }
+.clock__colon { animation: blink 1s steps(1) infinite; }
+@keyframes blink {
+  50% { opacity: 0.15; }
+}
+
+/* ---------- Secreto: modo Tokio neón ---------- */
+html.is-neon {
+  --bg: #0b0016 !important;
+  --fg: #ffe8fb !important;
+  --muted: #ff8ae0 !important;
+  --rule: rgba(255, 63, 208, 0.35) !important;
+}
+html.is-neon .gl-bg { opacity: 1 !important; }
+html.is-neon .h2,
+html.is-neon .hero__name,
+html.is-neon .contact__title,
+html.is-neon .proj__name,
+html.is-neon .case__title,
+html.is-neon .marquee__item {
+  color: #fff;
+  text-shadow: 0 0 6px #ff3fd0, 0 0 20px #ff3fd0, 0 0 46px #7a3cff;
+}
+html.is-neon .proj__info { background: #16002a; box-shadow: inset 0 0 0 1px #ff3fd0, inset 0 0 40px rgba(255, 63, 208, 0.25); }
+html.is-neon .pill--blue { background: #ff3fd0; color: #0b0016; box-shadow: 0 0 22px #ff3fd0; }
+html.is-neon .progress span { background: linear-gradient(90deg, #ff3fd0, #3ff4ff); }
+html.is-neon .ink-spread { display: none; }
+
+.neon-sign {
+  position: fixed;
+  top: 50%;
+  right: 2vw;
+  z-index: 70;
+  writing-mode: vertical-rl;
+  font-family: var(--font-body);
+  font-size: clamp(2.5rem, 5vw, 5rem);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: #c9fbff;
+  text-shadow: 0 0 6px #3ff4ff, 0 0 18px #3ff4ff, 0 0 42px #0a8cff;
+  pointer-events: none;
+  animation: flicker 3.2s infinite;
+}
+@keyframes flicker {
+  0%, 19%, 21%, 23%, 55%, 57%, 100% { opacity: 1; }
+  20%, 22%, 56% { opacity: 0.25; }
+}
+.neon-scan {
+  position: fixed;
+  inset: 0;
+  z-index: 69;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 4px);
+  mix-blend-mode: overlay;
+}
+.neon-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 2rem;
+  z-index: 96;
+  padding: 0.7rem 1.2rem;
+  border-radius: 999px;
+  background: #ff3fd0;
+  color: #0b0016;
+  font-weight: 500;
+  box-shadow: 0 0 30px #ff3fd0;
+  pointer-events: none;
+}
+
+/* ---------- Videos de proyecto ---------- */
+.mock__view { position: relative; }
+.mock__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.mock__video.is-playing { opacity: 1; }
+
+/* ---------- Captura que se expande a pantalla completa ---------- */
+.expand { position: fixed; z-index: 92; overflow: hidden; background: #111; pointer-events: none; }
+.expand img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 760px) {

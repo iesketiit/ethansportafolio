@@ -19,6 +19,7 @@ const fragmentShader = /* glsl */ `
   uniform float uScroll;
   uniform vec3 uGlow;
   uniform float uVel;
+  uniform float uNeon;
 
   vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
   vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -73,7 +74,7 @@ const fragmentShader = /* glsl */ `
 
     vec3 col = vec3(0.085, 0.083, 0.08) * smoothstep(0.35, 0.9, f);
     float rim = smoothstep(0.62, 0.92, f) * smoothstep(0.2, 0.8, length(q));
-    col += uGlow * rim * 0.18;
+    col += uGlow * rim * (0.18 + uNeon * 0.5);
     col += uGlow * 0.09 * exp(-d * 5.0);
 
     vec2 c = (gl_FragCoord.xy / uRes - 0.5) * vec2(uRes.x / uRes.y, 1.0);
@@ -112,6 +113,7 @@ export default function WebGLBackground() {
       uScroll: { value: 0 },
       uGlow: { value: new THREE.Color("#A9BDF2") },
       uVel: { value: 0 },
+      uNeon: { value: 0 },
     };
     const geometry = new THREE.PlaneGeometry(2, 2);
     const material = new THREE.ShaderMaterial({ uniforms, vertexShader, fragmentShader });
@@ -161,6 +163,16 @@ export default function WebGLBackground() {
     const reduced = prefersReducedMotion();
     let raf = 0;
     let running = true;
+    // Modo Tokio neón: el brillo del líquido pasa a magenta
+    let neonTarget = 0;
+    const glowTarget = new THREE.Color("#A9BDF2");
+    const onNeon = (e: Event) => {
+      const active = (e as CustomEvent<boolean>).detail;
+      neonTarget = active ? 1 : 0;
+      glowTarget.set(active ? "#FF3FD0" : "#A9BDF2");
+    };
+    window.addEventListener("ethan:neon", onNeon);
+
     let prev = performance.now();
     let clock = 0;
     let lastScroll = window.scrollY;
@@ -173,6 +185,8 @@ export default function WebGLBackground() {
       const speed = Math.min(1, Math.abs(window.scrollY - lastScroll) / 60);
       lastScroll = window.scrollY;
       uniforms.uVel.value += (speed - uniforms.uVel.value) * 0.06;
+      uniforms.uNeon.value += (neonTarget - uniforms.uNeon.value) * 0.05;
+      uniforms.uGlow.value.lerp(glowTarget, 0.05);
       clock += dt * (1 + uniforms.uVel.value * 7);
       uniforms.uTime.value = clock;
       uniforms.uMouse.value.lerp(mouseTarget, 0.05);
@@ -200,6 +214,7 @@ export default function WebGLBackground() {
     document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
+      window.removeEventListener("ethan:neon", onNeon);
       offIntro();
       running = false;
       cancelAnimationFrame(raf);

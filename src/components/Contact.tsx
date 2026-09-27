@@ -7,6 +7,7 @@ import { callUrl, site, telUrl, whatsappUrl } from "@/data/site";
 import { playWhoosh } from "@/lib/sound";
 import Magnetic from "./Magnetic";
 import SplitReveal from "./SplitReveal";
+import LiveClock from "./LiveClock";
 
 // "Contacto" en otros idiomas, flotando desenfocado detrás del título.
 // x / y en %, size en vw, blur en px, depth = cuánto reacciona al mouse.
@@ -176,6 +177,7 @@ export default function Contact() {
             </a>
           </Magnetic>
         </div>
+        <LiveClock />
         <a className="contact__phone muted" href={telUrl}>
           {site.phoneDisplay}
         </a>

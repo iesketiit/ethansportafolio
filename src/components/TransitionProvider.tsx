@@ -8,7 +8,14 @@ import { useLenis } from "./SmoothScroll";
 import { playWhoosh } from "@/lib/sound";
 import { site } from "@/data/site";
 
-type Navigate = (href: string) => void;
+type NavigateOptions = {
+  /** false: sin cortina (la transición la hace otro efecto, p. ej. la imagen que se expande) */
+  curtain?: boolean;
+};
+type Navigate = (href: string, options?: NavigateOptions) => void;
+
+/** Se emite cuando la nueva página ya está montada y en su lugar */
+export const PAGE_READY_EVENT = "ethan:page-ready";
 
 const NavigateContext = createContext<Navigate>(() => {});
 
@@ -24,6 +31,7 @@ export default function TransitionProvider({ children }: { children: React.React
   const busy = useRef(false);
   const pendingHash = useRef<string | null>(null);
   const firstRender = useRef(true);
+  const noCurtain = useRef(false);
 
   useEffect(() => {
     lenisRef.current = lenis;
@@ -43,7 +51,7 @@ export default function TransitionProvider({ children }: { children: React.React
   }, []);
 
   const navigate = useCallback<Navigate>(
-    (href) => {
+    (href, options) => {
       if (busy.current) return;
       const url = new URL(href, window.location.href);
 
@@ -63,6 +71,14 @@ export default function TransitionProvider({ children }: { children: React.React
       }
 
       pendingHash.current = hash;
+
+      if (options?.curtain === false) {
+        busy.current = true;
+        noCurtain.current = true;
+        lenisRef.current?.stop();
+        router.push(url.pathname, { scroll: false });
+        return;
+      }
 
       if (prefersReducedMotion() || !curtain.current) {
         router.push(url.pathname + (hash ?? ""));
@@ -102,6 +118,14 @@ export default function TransitionProvider({ children }: { children: React.React
     const raf = requestAnimationFrame(() => {
       ScrollTrigger.refresh();
       if (hash) scrollToHash(hash, true);
+      window.dispatchEvent(new Event(PAGE_READY_EVENT));
+
+      if (noCurtain.current) {
+        noCurtain.current = false;
+        busy.current = false;
+        lenisRef.current?.start();
+        return;
+      }
 
       if (!busy.current || !curtain.current) return;
       const el = curtain.current;

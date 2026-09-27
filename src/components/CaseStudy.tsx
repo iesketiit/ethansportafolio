@@ -13,6 +13,21 @@ import Footer from "./Footer";
 export default function CaseStudy({ project, next }: { project: Project; next: Project }) {
   const frameWrap = useRef<HTMLDivElement>(null);
   const view = useRef<HTMLDivElement>(null);
+  const cover = useRef<HTMLDivElement>(null);
+
+  // Portada: la captura a pantalla completa se aleja lentamente al hacer scroll
+  useGSAP(
+    () => {
+      if (prefersReducedMotion() || !cover.current) return;
+      gsap.to(cover.current.querySelector(".case__cover-media"), {
+        scale: 1.12,
+        yPercent: 12,
+        ease: "none",
+        scrollTrigger: { trigger: cover.current, start: "top top", end: "bottom top", scrub: true },
+      });
+    },
+    { scope: cover },
+  );
 
   // El sitio completo "se recorre" dentro de la ventana del navegador al hacer scroll
   useGSAP(
@@ -40,9 +55,15 @@ export default function CaseStudy({ project, next }: { project: Project; next: P
 
   return (
     <main className="case">
+      <div className="case__cover" ref={cover}>
+        <div className="case__cover-media">
+          <ProjectImage project={project} variant="card" eager />
+        </div>
+      </div>
+
       <header className="case__head">
         <p className="case__cat muted">{project.category}</p>
-        <SplitReveal as="h1" text={project.name} className="case__title" trigger="intro" />
+        <SplitReveal as="h1" text={project.name} className="case__title" />
 
         <dl className="case__meta">
           <div>

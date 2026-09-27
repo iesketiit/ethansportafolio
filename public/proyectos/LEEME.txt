@@ -1,10 +1,16 @@
-Capturas de los proyectos (opcional, recomendado para producción)
+Capturas y videos de los proyectos (opcional, recomendado)
 
-Por cada proyecto puedes poner tres imágenes con el slug como nombre:
-  <slug>.jpg       -> ventana de atrás: la portada del sitio (ej. 1440 x 900)
-  <slug>-2.jpg     -> ventana de adelante: otra parte del sitio (ej. 1440 x 900)
+Por cada proyecto puedes poner estos archivos, con el slug como nombre:
+  <slug>.jpg       -> ventana de atrás y portada del caso: la portada del sitio (1440 x 900)
+  <slug>-2.jpg     -> ventana de adelante: otra parte del sitio (1440 x 900)
   <slug>-full.jpg  -> página del caso: captura larga de todo el sitio (ancho 1440)
+  <slug>.mp4       -> video que se reproduce al pasar el mouse (y solo en el celular
+                      cuando el proyecto está en pantalla)
+
+Recomendaciones para el video: 8 a 12 segundos, 1440 x 900 o 1280 x 800, sin audio,
+formato H.264, menos de 4 MB. Graba el sitio haciendo scroll y mostrando sus animaciones.
 
 Slugs: vibe-bevvy, thirdway, white-desert, qissa, lingers, velaa, clemont
 
 Si una imagen no existe, la web usa una captura automática del sitio en vivo.
+Si el video no existe, simplemente se queda la captura.

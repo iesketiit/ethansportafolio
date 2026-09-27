@@ -152,3 +152,12 @@ export function playThud(strength = 1) {
   if (!c) return;
   tone(c, "sine", 170, 55, 0.18, Math.min(0.22, 0.06 + strength * 0.03));
 }
+
+/** Arpegio de arcade (modo Tokio neón) */
+export function playArcade() {
+  if (!isSoundOn()) return;
+  const c = getCtx(true);
+  if (!c) return;
+  const notes = [523, 659, 784, 1047, 784, 1047, 1319];
+  notes.forEach((f, i) => tone(c, "square", f, f * 0.99, 0.11, 0.045, i * 0.085));
+}

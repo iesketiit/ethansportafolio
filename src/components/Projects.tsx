@@ -3,11 +3,13 @@
 import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { hasFinePointer, prefersReducedMotion } from "@/lib/motion";
+import { playWhoosh } from "@/lib/sound";
 import { domainOf, projects } from "@/data/projects";
 import Marquee from "./Marquee";
 import ProjectImage from "./ProjectImage";
 import SplitReveal from "./SplitReveal";
 import TransitionLink from "./TransitionLink";
+import { PAGE_READY_EVENT, useNavigate } from "./TransitionProvider";
 
 function BrowserBar({ url }: { url: string }) {
   return (
@@ -20,8 +22,56 @@ function BrowserBar({ url }: { url: string }) {
   );
 }
 
+/** Reproduce el video del proyecto si existe (/proyectos/<slug>.mp4); si no, se queda la captura */
+function playVideo(video: HTMLVideoElement | null) {
+  if (!video || video.dataset.missing) return;
+  video.play().catch(() => {});
+}
+
 export default function Projects() {
   const root = useRef<HTMLElement>(null);
+  const navigate = useNavigate();
+
+  // Clic en un proyecto: su captura crece hasta llenar la pantalla y se convierte en la portada del caso
+  const expand = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0 || prefersReducedMotion()) return;
+    const article = e.currentTarget.closest(".proj");
+    const img = article?.querySelector<HTMLImageElement>(".mock--back .mock__view img");
+    if (!img || !img.complete || !img.naturalWidth) return; // sin captura: transición normal
+    e.preventDefault();
+
+    const view = img.closest(".mock__view") ?? img;
+    const r = view.getBoundingClientRect();
+    const clone = document.createElement("div");
+    clone.className = "expand";
+    const pic = document.createElement("img");
+    pic.src = img.currentSrc || img.src;
+    pic.alt = "";
+    clone.appendChild(pic);
+    document.body.appendChild(clone);
+
+    let removed = false;
+    const remove = () => {
+      if (removed) return;
+      removed = true;
+      gsap.to(clone, { opacity: 0, duration: 0.6, delay: 0.2, onComplete: () => clone.remove() });
+    };
+    window.addEventListener(PAGE_READY_EVENT, remove, { once: true });
+    window.setTimeout(remove, 6000);
+
+    playWhoosh();
+    gsap.set(clone, { top: r.top, left: r.left, width: r.width, height: r.height, borderRadius: 8 });
+    gsap.to(clone, {
+      top: 0,
+      left: 0,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      borderRadius: 0,
+      duration: 0.95,
+      ease: "power4.inOut",
+      onComplete: () => navigate(href, { curtain: false }),
+    });
+  };
 
   // Proyectos apilados como cartas + parallax de las ventanas + recorte al entrar
   useGSAP(
@@ -109,7 +159,9 @@ export default function Projects() {
         ly?.(py);
         if (coords) coords.textContent = `x ${Math.round(px)}  y ${Math.round(py)}`;
       };
+      const video = stage.querySelector<HTMLVideoElement>(".mock__video");
       const enter = (e: PointerEvent) => {
+        playVideo(video);
         const r = stage.getBoundingClientRect();
         if (lens) {
           gsap.set(lens, { x: e.clientX - r.left, y: e.clientY - r.top });
@@ -117,6 +169,7 @@ export default function Projects() {
         }
       };
       const leave = () => {
+        video?.pause();
         rx(0);
         ry(0);
         if (lens) gsap.to(lens, { scale: 0.3, opacity: 0, duration: 0.35, ease: "power2.in" });
@@ -131,6 +184,23 @@ export default function Projects() {
       };
     });
     return () => cleanups.forEach((c) => c());
+  }, []);
+
+  // Celular: el video se reproduce solo cuando el proyecto está en pantalla
+  useEffect(() => {
+    if (hasFinePointer() || prefersReducedMotion() || !root.current) return;
+    const videos = Array.from(root.current.querySelectorAll<HTMLVideoElement>(".mock__video"));
+    const io = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((en) => {
+          const v = en.target as HTMLVideoElement;
+          if (en.isIntersecting) playVideo(v);
+          else v.pause();
+        }),
+      { threshold: 0.6 },
+    );
+    videos.forEach((v) => io.observe(v));
+    return () => io.disconnect();
   }, []);
 
   return (
@@ -149,7 +219,12 @@ export default function Projects() {
               <h3 className="proj__name proj__reveal">{p.name}</h3>
               <div className="proj__foot proj__reveal">
                 <p>{p.summary}</p>
-                <TransitionLink href={`/proyectos/${p.slug}`} className="pill pill--light" data-scramble>
+                <TransitionLink
+                  href={`/proyectos/${p.slug}`}
+                  className="pill pill--light"
+                  data-scramble
+                  onClick={(e) => expand(e, `/proyectos/${p.slug}`)}
+                >
                   Ver proyecto
                 </TransitionLink>
               </div>
@@ -160,12 +235,26 @@ export default function Projects() {
               className="proj__stage"
               data-cursor="Ver"
               aria-label={`Ver el proyecto ${p.name}`}
+              onClick={(e) => expand(e, `/proyectos/${p.slug}`)}
             >
               <div className="proj__mocks">
                 <div className="mock mock--back">
                   <BrowserBar url={p.url} />
                   <div className="mock__view">
                     <ProjectImage project={p} variant="card" />
+                    <video
+                      className="mock__video"
+                      src={`/proyectos/${p.slug}.mp4`}
+                      muted
+                      loop
+                      playsInline
+                      preload="none"
+                      aria-hidden="true"
+                      onPlaying={(e) => e.currentTarget.classList.add("is-playing")}
+                      onError={(e) => {
+                        e.currentTarget.dataset.missing = "1";
+                      }}
+                    />
                   </div>
                 </div>
                 <div className="mock mock--front">

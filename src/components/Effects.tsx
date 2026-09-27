@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/motion";
 import { createSignatureSvg, drawSignature } from "@/lib/signature";
-import { playClick, playHover, playScratch } from "@/lib/sound";
+import { playArcade, playClick, playHover, playScratch } from "@/lib/sound";
 
 type Tone = "dark" | "blue" | "light";
 
@@ -293,7 +293,85 @@ export default function Effects() {
     };
   }, [pathname]);
 
-  // 7. Si te vas a otra pestaña, la web te llama
+  // 7. Secreto: código Konami (o 5 toques al logo en el celular) = modo Tokio neón por 10 s
+  useEffect(() => {
+    const code = ["arrowup", "arrowup", "arrowdown", "arrowdown", "arrowleft", "arrowright", "arrowleft", "arrowright", "b", "a"];
+    let progress = 0;
+    let taps: number[] = [];
+    let timer = 0;
+    let extras: HTMLElement[] = [];
+
+    const off = () => {
+      document.documentElement.classList.remove("is-neon");
+      window.dispatchEvent(new CustomEvent("ethan:neon", { detail: false }));
+      extras.forEach((el) => gsap.to(el, { opacity: 0, duration: 0.5, onComplete: () => el.remove() }));
+      extras = [];
+    };
+
+    const on = () => {
+      window.clearTimeout(timer);
+      if (!document.documentElement.classList.contains("is-neon")) {
+        document.documentElement.classList.add("is-neon");
+        window.dispatchEvent(new CustomEvent("ethan:neon", { detail: true }));
+        playArcade();
+
+        const sign = document.createElement("div");
+        sign.className = "neon-sign";
+        sign.setAttribute("aria-hidden", "true");
+        sign.textContent = "ネオン東京";
+        const scan = document.createElement("div");
+        scan.className = "neon-scan";
+        scan.setAttribute("aria-hidden", "true");
+        const toast = document.createElement("div");
+        toast.className = "neon-toast";
+        toast.setAttribute("role", "status");
+        toast.textContent = "Modo Tokio neón activado";
+        document.body.append(scan, sign, toast);
+        extras = [scan, sign, toast];
+        gsap.set(sign, { yPercent: -50 });
+        gsap.set(toast, { xPercent: -50 });
+        gsap.from(sign, { opacity: 0, x: 60, duration: 0.6, ease: "power3.out" });
+        gsap.fromTo(toast, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "back.out(2)" });
+        gsap.to(toast, { opacity: 0, y: -10, delay: 2.5, duration: 0.5 });
+      }
+      timer = window.setTimeout(off, 10_000);
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if (key === code[progress]) {
+        progress++;
+        if (progress === code.length) {
+          progress = 0;
+          on();
+        }
+      } else {
+        progress = key === code[0] ? 1 : 0;
+      }
+    };
+
+    const onTap = (e: MouseEvent) => {
+      if (!(e.target instanceof Element) || !e.target.closest(".nav__logo")) return;
+      const now = performance.now();
+      taps = [...taps.filter((t) => now - t < 2000), now];
+      if (taps.length >= 5) {
+        taps = [];
+        on();
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("click", onTap);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("click", onTap);
+      window.clearTimeout(timer);
+      extras.forEach((el) => el.remove());
+      document.documentElement.classList.remove("is-neon");
+    };
+  }, []);
+
+  // 8. Si te vas a otra pestaña, la web te llama
   useEffect(() => {
     let saved = "";
     const onVisibility = () => {

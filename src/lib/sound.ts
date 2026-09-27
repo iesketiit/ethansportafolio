@@ -144,3 +144,11 @@ export function playScratch(duration = 0.9) {
   src.start(t);
   src.stop(t + duration + 0.1);
 }
+
+/** Golpe sordo (letras que caen y rebotan) */
+export function playThud(strength = 1) {
+  if (!isSoundOn()) return;
+  const c = getCtx(true);
+  if (!c) return;
+  tone(c, "sine", 170, 55, 0.18, Math.min(0.22, 0.06 + strength * 0.03));
+}

@@ -18,6 +18,7 @@ const fragmentShader = /* glsl */ `
   uniform vec2 uMouse;
   uniform float uScroll;
   uniform vec3 uGlow;
+  uniform float uVel;
 
   vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
   vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -62,12 +63,13 @@ const fragmentShader = /* glsl */ `
     vec2 m = (uMouse - 0.5) * vec2(uRes.x / uRes.y, 1.0);
     float d = length(uv - m);
     uv += (uv - m) * 0.35 * exp(-d * 3.0);
+    float warp = 3.5 + uVel * 3.5;
 
     float t = uTime * 0.03;
     vec2 p = uv * 0.75 + vec2(0.0, uScroll * 0.25);
     vec2 q = vec2(fbm(p + t), fbm(p + vec2(5.2, 1.3) - t));
-    vec2 r = vec2(fbm(p + 3.5 * q + vec2(1.7, 9.2) + t * 1.3), fbm(p + 3.5 * q + vec2(8.3, 2.8) - t * 1.1));
-    float f = fbm(p + 3.5 * r);
+    vec2 r = vec2(fbm(p + warp * q + vec2(1.7, 9.2) + t * 1.3), fbm(p + warp * q + vec2(8.3, 2.8) - t * 1.1));
+    float f = fbm(p + warp * r);
 
     vec3 col = vec3(0.085, 0.083, 0.08) * smoothstep(0.35, 0.9, f);
     float rim = smoothstep(0.62, 0.92, f) * smoothstep(0.2, 0.8, length(q));
@@ -109,6 +111,7 @@ export default function WebGLBackground() {
       uMouse: { value: new THREE.Vector2(0.5, 0.5) },
       uScroll: { value: 0 },
       uGlow: { value: new THREE.Color("#A9BDF2") },
+      uVel: { value: 0 },
     };
     const geometry = new THREE.PlaneGeometry(2, 2);
     const material = new THREE.ShaderMaterial({ uniforms, vertexShader, fragmentShader });
@@ -158,10 +161,20 @@ export default function WebGLBackground() {
     const reduced = prefersReducedMotion();
     let raf = 0;
     let running = true;
-    const start = performance.now();
+    let prev = performance.now();
+    let clock = 0;
+    let lastScroll = window.scrollY;
 
     const render = () => {
-      uniforms.uTime.value = (performance.now() - start) / 1000;
+      // El líquido se agita y acelera cuanto más rápido haces scroll
+      const now = performance.now();
+      const dt = Math.min(0.05, (now - prev) / 1000);
+      prev = now;
+      const speed = Math.min(1, Math.abs(window.scrollY - lastScroll) / 60);
+      lastScroll = window.scrollY;
+      uniforms.uVel.value += (speed - uniforms.uVel.value) * 0.06;
+      clock += dt * (1 + uniforms.uVel.value * 7);
+      uniforms.uTime.value = clock;
       uniforms.uMouse.value.lerp(mouseTarget, 0.05);
       uniforms.uScroll.value += (window.scrollY / window.innerHeight - uniforms.uScroll.value) * 0.08;
       renderer.render(scene, camera);

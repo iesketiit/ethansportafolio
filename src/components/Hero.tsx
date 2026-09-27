@@ -2,10 +2,23 @@
 
 import { useEffect, useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { playThud } from "@/lib/sound";
 import { hasFinePointer, onIntroDone, prefersReducedMotion } from "@/lib/motion";
 import { site } from "@/data/site";
 
 const BASE_WEIGHT = 700;
+
+// Notas escritas con "tinta invisible": solo se ven bajo la lámpara UV del cursor
+const notes = [
+  { text: "Columbia University, NY", x: 6, y: 17, r: -6 },
+  { text: "Nueva York → Japón", x: 36, y: 13, r: 3 },
+  { text: "Next.js + Supabase + TypeScript", x: 58, y: 26, r: -3 },
+  { text: "doble clic = firma ✍", x: 8, y: 36, r: 4 },
+  { text: "↓ agárrame y lánzame", x: 33, y: 40, r: -5 },
+  { text: "Harvard + NextU", x: 84, y: 66, r: 7 },
+  { text: "escribe «ethan» en el teclado", x: 42, y: 90, r: -2 },
+];
+
 const BASE_WIDTH = 86;
 
 export default function Hero() {
@@ -68,6 +81,96 @@ export default function Hero() {
 
     hero.addEventListener("pointermove", move);
     hero.addEventListener("pointerleave", leave);
+
+    // Lámpara UV: revela la tinta invisible alrededor del cursor
+    const uv = hero.querySelector<HTMLElement>(".uv");
+    const lamp = { r: 0 };
+    const setLamp = () => uv?.style.setProperty("--r", `${lamp.r}px`);
+    const uvMove = (e: PointerEvent) => {
+      if (!uv) return;
+      const r = hero.getBoundingClientRect();
+      uv.style.setProperty("--mx", `${e.clientX - r.left}px`);
+      uv.style.setProperty("--my", `${e.clientY - r.top}px`);
+    };
+    const uvEnter = () => gsap.to(lamp, { r: 170, duration: 0.6, ease: "power3.out", onUpdate: setLamp });
+    const uvLeave = () => gsap.to(lamp, { r: 0, duration: 0.5, ease: "power2.in", onUpdate: setLamp });
+    hero.addEventListener("pointermove", uvMove);
+    hero.addEventListener("pointerenter", uvEnter);
+    hero.addEventListener("pointerleave", uvLeave);
+
+    // Secreto: escribir "ethan" hace que las letras caigan con gravedad
+    let typed = "";
+    let falling = false;
+    const fall = () => {
+      if (falling || !hero.classList.contains("is-ready") || window.scrollY > window.innerHeight * 0.6) return;
+      falling = true;
+      const box = hero.getBoundingClientRect();
+      const floor = box.bottom - 12;
+      const bodies = letters.map((el) => {
+        const r = el.getBoundingClientRect();
+        const x = Number(gsap.getProperty(el, "x"));
+        const y = Number(gsap.getProperty(el, "y"));
+        return {
+          el,
+          x,
+          y,
+          rot: Number(gsap.getProperty(el, "rotation")),
+          vx: gsap.utils.random(-5, 5),
+          vy: gsap.utils.random(-14, -6),
+          vr: gsap.utils.random(-7, 7),
+          bottom: r.bottom - y,
+          left: r.left - x,
+          right: r.right - x,
+        };
+      });
+      const step = () => {
+        for (const b of bodies) {
+          b.vy += 0.95;
+          b.x += b.vx;
+          b.y += b.vy;
+          b.rot += b.vr;
+          if (b.bottom + b.y > floor) {
+            b.y = floor - b.bottom;
+            if (Math.abs(b.vy) > 4) playThud(Math.abs(b.vy) / 6);
+            b.vy *= -0.42;
+            b.vx *= 0.82;
+            b.vr *= 0.6;
+          }
+          if (b.left + b.x < box.left) {
+            b.x = box.left - b.left;
+            b.vx *= -0.6;
+          }
+          if (b.right + b.x > box.right) {
+            b.x = box.right - b.right;
+            b.vx *= -0.6;
+          }
+          gsap.set(b.el, { x: b.x, y: b.y, rotation: b.rot });
+        }
+      };
+      gsap.ticker.add(step);
+      gsap.delayedCall(3.4, () => {
+        gsap.ticker.remove(step);
+        gsap.to(letters, {
+          x: 0,
+          y: 0,
+          rotation: 0,
+          duration: 1.6,
+          ease: "elastic.out(1, 0.4)",
+          stagger: 0.07,
+          onComplete: () => {
+            falling = false;
+          },
+        });
+      });
+    };
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (e.key.length !== 1) return;
+      typed = (typed + e.key.toLowerCase()).slice(-5);
+      if (typed === "ethan") fall();
+    };
+    window.addEventListener("keydown", onKey);
 
     // Agarra una letra, arrástrala y suéltala: sale disparada y vuelve rebotando
     const cleanups = letters.map((letter) => {
@@ -138,12 +241,24 @@ export default function Hero() {
     return () => {
       hero.removeEventListener("pointermove", move);
       hero.removeEventListener("pointerleave", leave);
+      hero.removeEventListener("pointermove", uvMove);
+      hero.removeEventListener("pointerenter", uvEnter);
+      hero.removeEventListener("pointerleave", uvLeave);
+      window.removeEventListener("keydown", onKey);
       cleanups.forEach((c) => c());
     };
   }, []);
 
   return (
     <section className="hero" id="inicio" data-tone="dark" ref={root}>
+      <div className="uv" aria-hidden="true">
+        {notes.map((n) => (
+          <span className="uv__note" key={n.text} style={{ left: `${n.x}%`, top: `${n.y}%`, rotate: `${n.r}deg` }}>
+            {n.text}
+          </span>
+        ))}
+      </div>
+
       <p className="hero__intro hero__fade">
         Comunicador social y desarrollador web. Formado en Columbia University, con experiencia profesional en Japón.
       </p>

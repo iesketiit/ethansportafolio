@@ -728,18 +728,6 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 }
 .stamp .signature path { stroke-width: 1.15; }
 
-/* ---------- Separación RGB según la velocidad del scroll ---------- */
-.h2,
-.contact__title,
-.case__title,
-.case__next-name,
-.proj__name,
-.marquee__item {
-  text-shadow:
-    calc(var(--vel, 0) * 1px) 0 rgba(255, 45, 95, 0.6),
-    calc(var(--vel, 0) * -1px) 0 rgba(80, 170, 255, 0.6);
-}
-
 /* ---------- Letras lanzables del hero ---------- */
 .hero__letter { position: relative; user-select: none; -webkit-user-select: none; }
 .hero.is-ready .hero__mask { overflow: visible; }
@@ -790,6 +778,65 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 /* ---------- Pluma del preloader ---------- */
 .preloader__sig .signature__ink path { stroke-width: 1.1; }
 .pen { will-change: transform, opacity; }
+
+/* ---------- Pluma que escribe con el scroll ---------- */
+.scroll-pen { position: absolute; top: 0; left: 0; z-index: 0; overflow: visible; pointer-events: none; }
+.scroll-pen__line {
+  fill: none;
+  stroke: var(--fg);
+  stroke-opacity: 0.45;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.scroll-pen__pen { transition: opacity 0.3s; }
+
+/* ---------- Tinta invisible (lámpara UV) ---------- */
+.uv {
+  --mx: -9999px;
+  --my: -9999px;
+  --r: 0px;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(circle var(--r) at var(--mx) var(--my), rgba(169, 189, 242, 0.1), transparent 100%);
+  -webkit-mask-image: radial-gradient(circle var(--r) at var(--mx) var(--my), #000 45%, transparent 100%);
+  mask-image: radial-gradient(circle var(--r) at var(--mx) var(--my), #000 45%, transparent 100%);
+}
+.uv__note {
+  position: absolute;
+  font-family: "Reenie Beanie", "Bradley Hand", cursive;
+  font-size: clamp(1.5rem, 2.4vw, 2.5rem);
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--ice);
+  text-shadow: 0 0 14px rgba(169, 189, 242, 0.85);
+}
+@media (hover: none) {
+  .uv { display: none; }
+}
+
+/* ---------- Agujero negro en los botones de contacto ---------- */
+.bubble__pull { display: inline-block; will-change: transform; }
+.pill.is-hole { animation: hole 1s ease-out infinite; }
+@keyframes hole {
+  0% { box-shadow: 0 0 0 0 rgba(169, 189, 242, 0.6); }
+  100% { box-shadow: 0 0 0 30px rgba(169, 189, 242, 0); }
+}
+
+/* ---------- Títulos que gotean ---------- */
+.svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.h2,
+.contact__title,
+.case__title { position: relative; }
+.drips { position: absolute; height: 400px; pointer-events: none; filter: url(#goo); }
+.drip,
+.drop,
+.drip-pool { position: absolute; top: 0; background: currentColor; }
+.drip { height: 0; border-radius: 0 0 999px 999px; }
+.drop { border-radius: 50%; opacity: 0; }
+.drip-pool { height: 9px; border-radius: 999px; transform-origin: center; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 760px) {

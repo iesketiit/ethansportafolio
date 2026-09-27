@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { hasFinePointer, prefersReducedMotion } from "@/lib/motion";
 import { callUrl, site, telUrl, whatsappUrl } from "@/data/site";
+import { playWhoosh } from "@/lib/sound";
 import Magnetic from "./Magnetic";
 import SplitReveal from "./SplitReveal";
 
@@ -77,7 +78,61 @@ export default function Contact() {
       });
     };
     section.addEventListener("pointermove", move);
-    return () => section.removeEventListener("pointermove", move);
+
+    // Agujero negro: los botones absorben todas las palabras flotantes
+    const pulls = Array.from(section.querySelectorAll<HTMLElement>(".bubble__pull"));
+    const buttons = Array.from(section.querySelectorAll<HTMLElement>(".contact__actions .pill"));
+
+    const suck = (btn: HTMLElement) => {
+      const b = btn.getBoundingClientRect();
+      const bx = b.left + b.width / 2;
+      const by = b.top + b.height / 2;
+      btn.classList.add("is-hole");
+      playWhoosh();
+      pulls.forEach((el, i) => {
+        const r = el.getBoundingClientRect();
+        const cx = r.left + r.width / 2 - Number(gsap.getProperty(el, "x"));
+        const cy = r.top + r.height / 2 - Number(gsap.getProperty(el, "y"));
+        gsap.to(el, {
+          x: bx - cx,
+          y: by - cy,
+          scale: 0.04,
+          rotation: (i % 2 ? 1 : -1) * gsap.utils.random(180, 540),
+          duration: gsap.utils.random(0.7, 1.1),
+          ease: "power3.in",
+          overwrite: true,
+        });
+      });
+    };
+    const release = (btn: HTMLElement) => {
+      btn.classList.remove("is-hole");
+      pulls.forEach((el) =>
+        gsap.to(el, {
+          x: 0,
+          y: 0,
+          scale: 1,
+          rotation: 0,
+          duration: gsap.utils.random(1.2, 1.8),
+          ease: "elastic.out(1, 0.55)",
+          overwrite: true,
+        }),
+      );
+    };
+    const offs = buttons.map((btn) => {
+      const enter = () => suck(btn);
+      const leave = () => release(btn);
+      btn.addEventListener("pointerenter", enter);
+      btn.addEventListener("pointerleave", leave);
+      return () => {
+        btn.removeEventListener("pointerenter", enter);
+        btn.removeEventListener("pointerleave", leave);
+      };
+    });
+
+    return () => {
+      section.removeEventListener("pointermove", move);
+      offs.forEach((off) => off());
+    };
   }, []);
 
   return (
@@ -91,8 +146,10 @@ export default function Contact() {
             data-depth={w.depth}
             style={{ left: `${w.x}%`, top: `${w.y}%`, fontSize: `calc(${w.size}vw + 0.75rem)`, opacity: w.opacity }}
           >
-            <span className="bubble__inner" style={{ filter: `blur(${w.blur}px)` }}>
-              {w.text}
+            <span className="bubble__pull">
+              <span className="bubble__inner" style={{ filter: `blur(${w.blur}px)` }}>
+                {w.text}
+              </span>
             </span>
           </span>
         ))}

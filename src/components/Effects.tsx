@@ -39,6 +39,65 @@ function scramble(el: HTMLElement) {
   }, 32);
 }
 
+/** Gotas de tinta que chorrean del título, se desprenden y caen */
+function drip(el: HTMLElement) {
+  const words = Array.from(el.querySelectorAll<HTMLElement>(".split__word"));
+  if (!words.length) return;
+  const base = el.getBoundingClientRect();
+  let left = Infinity;
+  let right = -Infinity;
+  let bottom = -Infinity;
+  for (const w of words) {
+    const r = w.getBoundingClientRect();
+    left = Math.min(left, r.left);
+    right = Math.max(right, r.right);
+    bottom = Math.max(bottom, r.bottom);
+  }
+
+  const box = document.createElement("div");
+  box.className = "drips";
+  box.setAttribute("aria-hidden", "true");
+  box.style.left = `${left - base.left}px`;
+  box.style.width = `${right - left}px`;
+  // Las gotas nacen pegadas a la línea base de las letras
+  const lift = parseFloat(getComputedStyle(el).fontSize) * 0.24;
+  box.style.top = `${bottom - base.top - lift}px`;
+  el.appendChild(box);
+
+  const count = 3 + Math.floor(Math.random() * 3);
+  const master = gsap.timeline({ onComplete: () => box.remove() });
+
+  for (let i = 0; i < count; i++) {
+    const w = gsap.utils.random(7, 15);
+    const h = gsap.utils.random(35, 110);
+    const x = gsap.utils.random(4, 94);
+
+    const pool = document.createElement("span");
+    pool.className = "drip-pool";
+    pool.style.left = `calc(${x}% - ${w * 0.8}px)`;
+    pool.style.width = `${w * 2.6}px`;
+    const stem = document.createElement("span");
+    stem.className = "drip";
+    stem.style.left = `${x}%`;
+    stem.style.width = `${w}px`;
+    const drop = document.createElement("span");
+    drop.className = "drop";
+    drop.style.left = `calc(${x}% - ${w * 0.18}px)`;
+    drop.style.width = drop.style.height = `${w * 1.36}px`;
+    box.append(pool, stem, drop);
+
+    const tl = gsap.timeline();
+    tl.to(stem, { height: h, duration: gsap.utils.random(1.2, 2), ease: "power1.in" })
+      .set(drop, { y: h - w * 0.7, opacity: 1 })
+      .to(stem, { height: h * 0.7, duration: 0.25, ease: "power2.out" })
+      .to(drop, { y: h + 260, duration: 0.9, ease: "power2.in" }, "<")
+      .to(drop, { opacity: 0, duration: 0.3 }, ">-0.3")
+      .to(stem, { height: 0, duration: 1.3, ease: "power2.inOut" }, "-=0.5")
+      .to(pool, { scaleX: 0, opacity: 0, duration: 0.8 }, "<0.4");
+    master.add(tl, gsap.utils.random(0, 1.4));
+  }
+}
+
 // Última posición del puntero: de ahí nace la gota de tinta
 const pointer = { x: -1, y: -1 };
 
@@ -141,10 +200,9 @@ export default function Effects() {
     };
   }, [pathname]);
 
-  // 3. Velocidad del scroll: títulos con separación RGB y paneles de proyecto tipo gelatina
+  // 3. Velocidad del scroll: paneles de proyecto tipo gelatina
   useEffect(() => {
     if (prefersReducedMotion()) return;
-    const root = document.documentElement;
     const panels = Array.from(document.querySelectorAll<HTMLElement>(".proj"));
     const skews = panels.map((p) => gsap.quickSetter(p, "skewY", "deg"));
     let target = 0;
@@ -163,7 +221,6 @@ export default function Effects() {
       const v = gsap.utils.clamp(-14, 14, vel / 160);
       const value = Math.abs(v) < 0.05 ? "0" : v.toFixed(2);
       if (value !== last) {
-        root.style.setProperty("--vel", value);
         const skew = gsap.utils.clamp(-4, 4, v * 0.35);
         skews.forEach((set) => set(Math.abs(skew) < 0.02 ? 0 : skew));
         last = value;
@@ -174,7 +231,6 @@ export default function Effects() {
     return () => {
       gsap.ticker.remove(tick);
       st.kill();
-      root.style.setProperty("--vel", "0");
       panels.forEach((p) => gsap.set(p, { skewY: 0 }));
     };
   }, [pathname]);
@@ -253,7 +309,25 @@ export default function Effects() {
     };
   }, []);
 
-  // 6. Si te vas a otra pestaña, la web te llama
+  // 6. Los títulos gotean tinta al aparecer
+  useEffect(() => {
+    if (prefersReducedMotion()) return;
+    const heads = Array.from(document.querySelectorAll<HTMLElement>(".h2, .contact__title, .case__title"));
+    const triggers = heads.map((el) =>
+      ScrollTrigger.create({
+        trigger: el,
+        start: "top 75%",
+        once: true,
+        onEnter: () => void gsap.delayedCall(1.7, () => drip(el)),
+      }),
+    );
+    return () => {
+      triggers.forEach((t) => t.kill());
+      document.querySelectorAll(".drips").forEach((d) => d.remove());
+    };
+  }, [pathname]);
+
+  // 7. Si te vas a otra pestaña, la web te llama
   useEffect(() => {
     let saved = "";
     const onVisibility = () => {

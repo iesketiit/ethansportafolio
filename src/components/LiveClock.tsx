@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-type Parts = { japan: [string, string]; local: [string, string]; sameZone: boolean };
+type Parts = { japan: [string, string]; local: [string, string]; sameZone: boolean; asleep: boolean };
 
 const fmt = (timeZone?: string) =>
   new Intl.DateTimeFormat("es", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone });
@@ -12,7 +12,8 @@ function read(): Parts {
   const japan = fmt("Asia/Tokyo").format(now).split(":") as [string, string];
   const local = fmt().format(now).split(":") as [string, string];
   const sameZone = Intl.DateTimeFormat().resolvedOptions().timeZone === "Asia/Tokyo";
-  return { japan, local, sameZone };
+  const hour = Number(japan[0]);
+  return { japan, local, sameZone, asleep: hour >= 0 && hour < 7 };
 }
 
 function Time({ value }: { value: [string, string] }) {
@@ -41,6 +42,7 @@ export default function LiveClock() {
     <p className="clock">
       ¿Hablamos? En Japón son las <Time value={parts.japan} />
       {parts.sameZone ? "." : <>. Para ti, las <Time value={parts.local} />.</>}
+      {parts.asleep && <span className="clock__sleep"> Probablemente estoy durmiendo; te respondo en unas horas.</span>}
     </p>
   );
 }

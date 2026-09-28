@@ -6,6 +6,7 @@ import { prefersReducedMotion } from "@/lib/motion";
 import { drawSignature } from "@/lib/signature";
 import { useNavigate } from "./TransitionProvider";
 import Signature from "./Signature";
+import DontTouch from "./DontTouch";
 import { site, whatsappUrl } from "@/data/site";
 
 export default function Footer() {
@@ -30,10 +31,11 @@ export default function Footer() {
         <span>
           © {new Date().getFullYear()} {site.name}
         </span>
-        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-scramble>
+        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
           WhatsApp
         </a>
-        <button onClick={() => navigate(window.location.pathname)} data-scramble>
+        <DontTouch />
+        <button onClick={() => navigate(window.location.pathname)}>
           Volver arriba
         </button>
       </div>

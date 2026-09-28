@@ -5,6 +5,12 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { onIntroDone, prefersReducedMotion } from "@/lib/motion";
 
+declare global {
+  interface Window {
+    __ethanLenis?: Lenis;
+  }
+}
+
 const LenisContext = createContext<Lenis | null>(null);
 
 export const useLenis = () => useContext(LenisContext);
@@ -29,12 +35,14 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
       off = onIntroDone(() => instance.start());
     }
 
+    window.__ethanLenis = instance;
     setLenis(instance);
 
     return () => {
       off();
       gsap.ticker.remove(tick);
       instance.destroy();
+      if (window.__ethanLenis === instance) window.__ethanLenis = undefined;
       setLenis(null);
     };
   }, []);

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { onIntroDone, prefersReducedMotion } from "@/lib/motion";
+import { onWeather } from "@/lib/tokyo";
 
 const vertexShader = /* glsl */ `
   void main() {
@@ -20,6 +21,10 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uGlow;
   uniform float uVel;
   uniform float uNeon;
+  uniform float uNight;
+  uniform float uFog;
+  uniform float uFlash;
+  uniform float uClock;
 
   vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
   vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -77,8 +82,21 @@ const fragmentShader = /* glsl */ `
     col += uGlow * rim * (0.18 + uNeon * 0.5);
     col += uGlow * 0.09 * exp(-d * 5.0);
 
+    // Clima de Tokio: niebla/nubes apagan y blanquean la tinta
+    col = mix(col, vec3(0.06, 0.065, 0.075) + col * 0.4, uFog);
+
+    // Noche en Japón: más oscuro y con estrellas que titilan
+    col *= 1.0 - uNight * 0.35;
+    vec2 sg = floor(gl_FragCoord.xy / 3.0);
+    float star = step(0.9975, fract(sin(dot(sg, vec2(12.9898, 78.233))) * 43758.5453));
+    float twinkle = 0.5 + 0.5 * sin(uClock * 2.0 + dot(sg, vec2(1.7, 3.1)));
+    col += vec3(0.75, 0.8, 1.0) * star * twinkle * uNight * 0.55;
+
     vec2 c = (gl_FragCoord.xy / uRes - 0.5) * vec2(uRes.x / uRes.y, 1.0);
     col *= smoothstep(1.3, 0.2, length(c));
+
+    // Relámpago
+    col += vec3(0.55, 0.6, 0.75) * uFlash * (0.4 + f * 0.8);
 
     gl_FragColor = vec4(col, 1.0);
   }
@@ -114,6 +132,10 @@ export default function WebGLBackground() {
       uGlow: { value: new THREE.Color("#A9BDF2") },
       uVel: { value: 0 },
       uNeon: { value: 0 },
+      uNight: { value: 0 },
+      uFog: { value: 0 },
+      uFlash: { value: 0 },
+      uClock: { value: 0 },
     };
     const geometry = new THREE.PlaneGeometry(2, 2);
     const material = new THREE.ShaderMaterial({ uniforms, vertexShader, fragmentShader });
@@ -173,6 +195,18 @@ export default function WebGLBackground() {
     };
     window.addEventListener("ethan:neon", onNeon);
 
+    // Clima real de Tokio
+    let nightTarget = 0;
+    let fogTarget = 0;
+    const offWeather = onWeather((w) => {
+      nightTarget = w.isDay ? 0 : 1;
+      fogTarget = w.kind === "fog" ? 0.75 : w.kind === "clouds" ? 0.3 : w.kind === "rain" || w.kind === "storm" ? 0.35 : 0;
+    });
+    const onLightning = () => {
+      uniforms.uFlash.value = 1;
+    };
+    window.addEventListener("ethan:lightning", onLightning);
+
     let prev = performance.now();
     let clock = 0;
     let lastScroll = window.scrollY;
@@ -186,12 +220,17 @@ export default function WebGLBackground() {
       lastScroll = window.scrollY;
       uniforms.uVel.value += (speed - uniforms.uVel.value) * 0.06;
       uniforms.uNeon.value += (neonTarget - uniforms.uNeon.value) * 0.05;
+      uniforms.uNight.value += (nightTarget - uniforms.uNight.value) * 0.03;
+      uniforms.uFog.value += (fogTarget - uniforms.uFog.value) * 0.03;
+      uniforms.uFlash.value *= 0.86;
+      uniforms.uClock.value += dt;
       uniforms.uGlow.value.lerp(glowTarget, 0.05);
       clock += dt * (1 + uniforms.uVel.value * 7);
       uniforms.uTime.value = clock;
       uniforms.uMouse.value.lerp(mouseTarget, 0.05);
       uniforms.uScroll.value += (window.scrollY / window.innerHeight - uniforms.uScroll.value) * 0.08;
-      renderer.render(scene, camera);
+      // En la galería 3D el fondo queda tapado: no se dibuja
+      if (!document.documentElement.classList.contains("is-gallery")) renderer.render(scene, camera);
       if (running && !reduced) raf = requestAnimationFrame(render);
     };
 
@@ -214,6 +253,8 @@ export default function WebGLBackground() {
     document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
+      offWeather();
+      window.removeEventListener("ethan:lightning", onLightning);
       window.removeEventListener("ethan:neon", onNeon);
       offIntro();
       running = false;

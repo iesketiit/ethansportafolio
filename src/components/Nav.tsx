@@ -9,6 +9,7 @@ import { whatsappUrl } from "@/data/site";
 
 const links = [
   { href: "/#trabajo", label: "Proyectos" },
+  { href: "/galeria", label: "Galería 3D" },
   { href: "/#sobre-mi", label: "Sobre mí" },
   { href: "/#servicios", label: "Servicios" },
   { href: "/#contacto", label: "Contacto" },
@@ -102,7 +103,7 @@ export default function Nav() {
   return (
     <>
       <header className={`nav ${scrolled ? "is-scrolled" : ""} ${open ? "is-menu-open" : ""}`}>
-        <TransitionLink href="/" className="nav__logo" data-scramble onClick={() => setOpen(false)}>
+        <TransitionLink href="/" className="nav__logo" onClick={() => setOpen(false)}>
           Ethan [S]
         </TransitionLink>
 
@@ -110,7 +111,7 @@ export default function Nav() {
           <ul className="nav__links">
             {links.map((l) => (
               <li key={l.href}>
-                <TransitionLink href={l.href} data-scramble>
+                <TransitionLink href={l.href}>
                   {l.label}
                 </TransitionLink>
               </li>
@@ -120,7 +121,7 @@ export default function Nav() {
 
         <div className="nav__actions">
           <SoundToggle />
-          <a className="pill pill--blue nav__cta" href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-scramble>
+          <a className="pill pill--blue nav__cta" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
             Cotiza aquí
           </a>
           <button

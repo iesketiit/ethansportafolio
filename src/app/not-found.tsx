@@ -6,7 +6,7 @@ export default function NotFound() {
     <main className="notfound" data-tone="dark">
       <NotFoundArt />
       <p className="muted notfound__text">Puede que el enlace esté mal escrito o que la página ya no exista.</p>
-      <TransitionLink href="/" className="pill pill--light" data-scramble>
+      <TransitionLink href="/" className="pill pill--light">
         Volver al inicio
       </TransitionLink>
     </main>

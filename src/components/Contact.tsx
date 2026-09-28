@@ -167,12 +167,12 @@ export default function Contact() {
         </p>
         <div className="contact__actions">
           <Magnetic>
-            <a className="pill pill--light" href={callUrl} target="_blank" rel="noopener noreferrer" data-scramble>
+            <a className="pill pill--light" href={callUrl} target="_blank" rel="noopener noreferrer">
               Agenda una llamada
             </a>
           </Magnetic>
           <Magnetic>
-            <a className="pill pill--blue" href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-scramble>
+            <a className="pill pill--blue" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
               Cotiza aquí
             </a>
           </Magnetic>

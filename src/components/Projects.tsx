@@ -207,7 +207,12 @@ export default function Projects() {
     <section className="work" id="trabajo" data-tone="dark" ref={root}>
       <div className="section__head work__head">
         <SplitReveal text={"Proyectos\nseleccionados"} className="h2" effect="blur" />
-        <p className="muted section__aside">{projects.length} sitios diseñados y desarrollados de principio a fin.</p>
+        <div className="section__aside">
+          <p className="muted">{projects.length} sitios diseñados y desarrollados de principio a fin.</p>
+          <TransitionLink href="/galeria" className="pill pill--blue work__gallery">
+            Recorrer en 3D
+          </TransitionLink>
+        </div>
       </div>
 
       <div className="projs">
@@ -225,7 +230,6 @@ export default function Projects() {
                     href={p.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    data-scramble
                     aria-label={`Visitar el sitio de ${p.name} (se abre en una pestaña nueva)`}
                   >
                     Visitar sitio
@@ -233,7 +237,6 @@ export default function Projects() {
                   <TransitionLink
                     href={`/proyectos/${p.slug}`}
                     className="pill pill--outline"
-                    data-scramble
                     onClick={(e) => expand(e, `/proyectos/${p.slug}`)}
                   >
                     Ver caso

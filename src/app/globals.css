@@ -116,7 +116,7 @@ main { position: relative; z-index: 1; }
   font-size: clamp(2.75rem, 7vw, 6.5rem);
   line-height: 0.95;
   letter-spacing: -0.035em;
-  font-variation-settings: "wdth" 84, "opsz" 96;
+  font-variation-settings: "wdth" 87.5;
 }
 
 .split__word {
@@ -587,7 +587,7 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
   line-height: 0.85;
   letter-spacing: -0.04em;
   text-transform: uppercase;
-  font-variation-settings: "wdth" 100, "opsz" 96;
+  font-variation-settings: "wdth" 100;
 }
 .contact__text { max-width: 58ch; margin-top: 2rem; font-size: clamp(1rem, 1.4vw, 1.25rem); line-height: 1.5; }
 .contact__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 2.25rem; }
@@ -742,17 +742,6 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 /* ---------- Tinta que se derrama al cambiar de sección ---------- */
 .ink-spread { position: fixed; inset: 0; z-index: 0; pointer-events: none; will-change: clip-path; }
 
-/* ---------- Salpicadura de tinta al hacer clic ---------- */
-.ink-splash {
-  position: fixed;
-  inset: 0;
-  z-index: 98;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  mix-blend-mode: difference;
-}
-
 /* ---------- Sello de firma (doble clic) ---------- */
 .stamp {
   position: absolute;
@@ -767,9 +756,6 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 .hero__letter { position: relative; user-select: none; -webkit-user-select: none; }
 .hero.is-ready .hero__mask { overflow: visible; }
 .hero__letter.is-grabbed { z-index: 5; }
-
-/* ---------- Palabras que esquivan el cursor ---------- */
-.scrub__word { display: inline-block; will-change: transform; }
 
 /* ---------- Lente "modo código" ---------- */
 .lens {
@@ -848,19 +834,6 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
   100% { box-shadow: 0 0 0 30px rgba(169, 189, 242, 0); }
 }
 
-/* ---------- Títulos que gotean ---------- */
-.svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
-.h2,
-.contact__title,
-.case__title { position: relative; }
-.drips { position: absolute; height: 400px; pointer-events: none; filter: url(#goo); }
-.drip,
-.drop,
-.drip-pool { position: absolute; top: 0; background: currentColor; }
-.drip { height: 0; border-radius: 0 0 999px 999px; }
-.drop { border-radius: 50%; opacity: 0; }
-.drip-pool { height: 9px; border-radius: 999px; transform-origin: center; }
-
 /* ---------- Rastro de capturas sobre la cinta ---------- */
 .marquee--trail { position: relative; z-index: 2; }
 .trail-card {
@@ -902,6 +875,7 @@ html[data-active-tone="blue"] .nav .pill--blue { background: var(--cream); color
 }
 
 /* ---------- Malla magnética (Servicios) ---------- */
+#servicios { overflow: clip; }
 .dot-field { position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; }
 #servicios > :not(.dot-field) { position: relative; z-index: 1; }
 
@@ -994,6 +968,88 @@ html.is-neon .ink-spread { display: none; }
 .expand { position: fixed; z-index: 92; overflow: hidden; background: #111; pointer-events: none; }
 .expand img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
 
+/* ---------- Tokio en vivo ---------- */
+.weather { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; }
+.hero__side { display: flex; flex-direction: column; align-items: flex-end; gap: 0.9rem; }
+.tokyo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.tokyo-badge__icon { color: var(--ice); font-size: 0.9375rem; line-height: 1; }
+.clock__sleep { display: block; margin-top: 0.25rem; color: var(--ice); }
+
+/* ---------- Todo se derrumba ---------- */
+html.is-collapsing,
+html.is-collapsing body { overflow: hidden; }
+.dont-touch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid #ff4d4d;
+  border-radius: 999px;
+  color: #ff6b6b;
+  font-size: 0.8125rem;
+  transition: background-color 0.3s, color 0.3s;
+}
+.dont-touch:hover { background: #ff4d4d; color: #0a0a0a; }
+.dont-touch:disabled { opacity: 0.7; }
+.dont-touch__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: blink 1.2s steps(1) infinite;
+}
+
+/* ---------- Títulos líquidos ---------- */
+.h2,
+.contact__title { position: relative; }
+.liquid { position: absolute; z-index: 2; pointer-events: none; }
+.is-liquid .split__inner { visibility: hidden; }
+
+/* ---------- Galería 3D ---------- */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.gallery { position: relative; }
+.gallery__stage { position: fixed; inset: 0; z-index: 1; }
+.gallery__stage canvas { display: block; }
+.gallery__hud {
+  position: fixed;
+  inset: auto var(--pad) var(--pad) var(--pad);
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2rem;
+  pointer-events: none;
+}
+.gallery__count { color: var(--muted); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.gallery__name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2rem, 4.5vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+.gallery__cat { color: var(--muted); margin-top: 0.4rem; }
+.gallery__hint { max-width: 28ch; color: var(--muted); font-size: 0.875rem; text-align: right; }
+html.is-gallery .weather,
+html.is-gallery .gl-bg { visibility: hidden; }
+.section__aside { display: flex; flex-direction: column; align-items: flex-end; gap: 1rem; }
+@media (max-width: 760px) {
+  .gallery__hint { display: none; }
+  .section__aside { align-items: flex-start; }
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 760px) {
   .section__head { flex-direction: column; align-items: flex-start; }
@@ -1005,6 +1061,7 @@ html.is-neon .ink-spread { display: none; }
   .about__grid { gap: 2rem; }
   .hero__bottom { flex-direction: column; align-items: flex-start; }
   .hero__intro { justify-self: start; }
+  .hero__side { align-items: flex-start; }
   .footer__row { flex-wrap: wrap; }
   .case__frame-wrap { height: 80svh; }
 
@@ -1024,6 +1081,5 @@ html.is-neon .ink-spread { display: none; }
     transition: none !important;
   }
   .browser__view { overflow-y: auto; }
-  .ink-splash,
   .lens { display: none; }
 }

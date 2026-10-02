@@ -197,7 +197,7 @@ export default function Hero() {
       </h1>
 
       <div className="hero__bottom hero__fade">
-        <p>Diseño y desarrollo sitios web con movimiento para marcas de e-commerce, arquitectura, hotelería y moda.</p>
+        <p>Diseño y desarrollo sitios web con movimiento e integraciones con IA para marcas de eventos, e-commerce, arquitectura, hotelería y moda.</p>
         <div className="hero__side">
           <TokyoBadge />
           <span className="hero__cue">

@@ -10,7 +10,7 @@ Por cada proyecto puedes poner estos archivos, con el slug como nombre:
 Recomendaciones para el video: 8 a 12 segundos, 1440 x 900 o 1280 x 800, sin audio,
 formato H.264, menos de 4 MB. Graba el sitio haciendo scroll y mostrando sus animaciones.
 
-Slugs: vibe-bevvy, thirdway, white-desert, qissa, lingers, velaa, clemont
+Slugs: 403-events, vibe-bevvy, thirdway, white-desert, qissa, lingers, velaa, clemont
 
 Si una imagen no existe, la web usa una captura automática del sitio en vivo.
 Si el video no existe, simplemente se queda la captura.

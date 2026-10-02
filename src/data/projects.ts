@@ -6,9 +6,21 @@ export type Project = {
   role: string;
   /** Texto del caso de estudio. Edítalo con lo que hiciste en cada proyecto. */
   summary: string;
+  /** Color del panel del proyecto (por defecto, azul cobalto) */
+  accent?: string;
 };
 
 export const projects: Project[] = [
+  {
+    slug: "403-events",
+    name: "403 Events",
+    category: "Evento",
+    url: "https://403events.com/",
+    role: "Diseño, desarrollo web y panel de administración",
+    summary:
+      "Sitio del evento exclusivo de Halloween 403 (Forbidden Event): acceso por solicitud y aprobación, ediciones en varias ciudades y panel de administración conectado a Supabase.",
+    accent: "#722F37",
+  },
   {
     slug: "vibe-bevvy",
     name: "Vibe Bevvy",

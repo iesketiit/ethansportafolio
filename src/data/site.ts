@@ -2,7 +2,7 @@ export const site = {
   name: "Ethan S",
   role: "Comunicador social y desarrollador web",
   description:
-    "Portafolio de Ethan S: diseño y desarrollo web para marcas de e-commerce, arquitectura, hotelería, fotografía y branding.",
+    "Portafolio de Ethan S: diseño y desarrollo web e integraciones con IA para marcas de eventos, e-commerce, arquitectura, hotelería, fotografía y branding.",
   phoneDisplay: "+81 90-5474-1253",
   phoneIntl: "819054741253",
 };

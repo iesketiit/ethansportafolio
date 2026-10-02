@@ -18,6 +18,14 @@ const services = [
     title: "Integraciones con Supabase",
     text: "Bases de datos, inicio de sesión, formularios y paneles de administración conectados a tu sitio.",
   },
+  {
+    title: "Asistentes con IA",
+    text: "Chatbots para tu web y WhatsApp que responden dudas, filtran clientes y te pasan solo lo importante.",
+  },
+  {
+    title: "GEO: visibilidad en IA",
+    text: "Optimización para que ChatGPT, Gemini y otras IAs entiendan tu marca y la recomienden cuando alguien pregunta.",
+  },
 ];
 
 export default function Services() {

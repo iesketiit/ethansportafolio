@@ -219,7 +219,7 @@ export default function Projects() {
         {projects.map((p) => (
           <article className="proj" key={p.slug}>
             <div className="proj__inner">
-            <div className="proj__info">
+            <div className="proj__info" style={p.accent ? { background: p.accent } : undefined}>
               <p className="proj__cat proj__reveal">{p.category}</p>
               <h3 className="proj__name proj__reveal">{p.name}</h3>
               <div className="proj__foot proj__reveal">

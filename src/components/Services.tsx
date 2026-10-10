@@ -1,5 +1,6 @@
 import SplitReveal from "./SplitReveal";
 import DotField from "./DotField";
+import Rolodex from "./Rolodex";
 
 const services = [
   {
@@ -35,14 +36,14 @@ export default function Services() {
       <div className="section__head">
         <SplitReveal text="Qué hago" className="h2" effect="blur" />
       </div>
-      <ul className="rows">
+      <Rolodex>
         {services.map((s) => (
           <li className="row row--service" key={s.title}>
             <h3>{s.title}</h3>
             <p className="muted">{s.text}</p>
           </li>
         ))}
-      </ul>
+      </Rolodex>
     </section>
   );
 }

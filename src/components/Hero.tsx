@@ -61,7 +61,23 @@ export default function Hero() {
     if (!hero || !hasFinePointer() || prefersReducedMotion()) return;
     const letters = Array.from(hero.querySelectorAll<HTMLElement>(".hero__letter"));
 
+    // El nombre gira en 3D hacia el cursor y su volumen se proyecta en sentido contrario
+    const name = hero.querySelector<HTMLElement>(".hero__name");
+    if (name) gsap.set(name, { transformPerspective: 1100, transformOrigin: "50% 60%" });
+    const tiltX = name ? gsap.quickTo(name, "rotationX", { duration: 1, ease: "power3" }) : null;
+    const tiltY = name ? gsap.quickTo(name, "rotationY", { duration: 1, ease: "power3" }) : null;
+    const depthX = name ? gsap.quickTo(name, "--sx", { duration: 0.8, ease: "power3" }) : null;
+    const depthY = name ? gsap.quickTo(name, "--sy", { duration: 0.8, ease: "power3" }) : null;
+
     const move = (e: PointerEvent) => {
+      const box = hero.getBoundingClientRect();
+      const nx = (e.clientX - box.left) / box.width - 0.5;
+      const ny = (e.clientY - box.top) / box.height - 0.5;
+      tiltY?.(nx * 16);
+      tiltX?.(-ny * 12);
+      depthX?.(0.6 - nx * 2.4);
+      depthY?.(0.8 - ny * 2.4);
+
       const radius = window.innerWidth * 0.3;
       for (const letter of letters) {
         const r = letter.getBoundingClientRect();
@@ -76,8 +92,13 @@ export default function Hero() {
         });
       }
     };
-    const leave = () =>
+    const leave = () => {
       gsap.to(letters, { "--w": BASE_WEIGHT, "--d": BASE_WIDTH, duration: 1.2, ease: "power3.out" });
+      tiltX?.(0);
+      tiltY?.(0);
+      depthX?.(0.6);
+      depthY?.(0.8);
+    };
 
     hero.addEventListener("pointermove", move);
     hero.addEventListener("pointerleave", leave);

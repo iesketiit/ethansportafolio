@@ -1083,3 +1083,120 @@ html.is-gallery .gl-bg { visibility: hidden; }
   .browser__view { overflow-y: auto; }
   .lens { display: none; }
 }
+
+/* ---------- Escena 3D: partículas que cambian de forma con el scroll ---------- */
+.morph { position: relative; z-index: 1; height: 440vh; }
+.morph__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.82) 70%);
+}
+.morph__stage { position: absolute; inset: 0; }
+.morph__stage canvas { display: block; width: 100% !important; height: 100% !important; }
+.morph__stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+.morph__hud {
+  position: absolute;
+  top: 6.5rem;
+  right: var(--pad);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1rem;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  opacity: calc(1 - var(--dive, 0) * 2);
+}
+.morph__bar { position: relative; width: 1px; height: 7rem; background: var(--rule); overflow: hidden; }
+.morph__bar span {
+  position: absolute;
+  inset: 0;
+  background: var(--ice);
+  transform: scaleY(0);
+  transform-origin: top;
+}
+.morph__hint { writing-mode: vertical-rl; }
+.morph__chapters { list-style: none; position: absolute; left: var(--pad); right: var(--pad); bottom: clamp(2rem, 6vh, 4rem); pointer-events: none; }
+.morph__chapter {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  max-width: min(40rem, 100%);
+  opacity: 0;
+  transform: translateY(1.5rem);
+  filter: blur(8px);
+  transition: opacity 0.7s var(--ease), transform 0.9s var(--ease), filter 0.7s var(--ease);
+}
+.morph__chapter.is-active { opacity: 1; transform: none; filter: none; }
+.morph__jp {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  line-height: 1;
+  color: var(--ice);
+  opacity: 0.35;
+}
+.morph__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.9rem, 4.6vw, 4.2rem);
+  line-height: 1;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.morph__text { margin-top: 0.9rem; max-width: 36ch; color: var(--muted); }
+.morph.is-static { height: auto; }
+.morph.is-static .morph__sticky { position: relative; height: auto; padding: 8rem var(--pad); }
+.morph.is-static .morph__chapters { position: static; display: grid; gap: 3rem; }
+.morph.is-static .morph__chapter { position: static; opacity: 1; transform: none; filter: none; }
+.morph.is-static .morph__hud { display: none; }
+@media (max-width: 760px) {
+  .morph { height: 380vh; }
+  .morph__hud { top: 5.5rem; }
+  .morph__hint { display: none; }
+  .morph__chapters { bottom: 2.5rem; }
+}
+html.is-neon .morph__jp { color: #ff3fd0; opacity: 0.7; text-shadow: 0 0 18px #ff3fd0; }
+
+/* ---------- Hero: letras con volumen 3D que sigue al cursor ---------- */
+.hero__name {
+  --sx: 0.6;
+  --sy: 0.8;
+  transform-style: preserve-3d;
+}
+html.has-cursor:not(.is-neon) .hero__name {
+  text-shadow:
+    calc(var(--sx) * 0.006em) calc(var(--sy) * 0.006em) 0 #2c46b1,
+    calc(var(--sx) * 0.012em) calc(var(--sy) * 0.012em) 0 #2a42a8,
+    calc(var(--sx) * 0.018em) calc(var(--sy) * 0.018em) 0 #263c9a,
+    calc(var(--sx) * 0.024em) calc(var(--sy) * 0.024em) 0 #22388f,
+    calc(var(--sx) * 0.03em) calc(var(--sy) * 0.03em) 0 #1d307c,
+    calc(var(--sx) * 0.036em) calc(var(--sy) * 0.036em) 0 #182869,
+    calc(var(--sx) * 0.042em) calc(var(--sy) * 0.042em) 0 #132055,
+    calc(var(--sx) * 0.05em) calc(var(--sy) * 0.05em) 0.04em rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- Servicios: filas que caen como un Rolodex 3D ---------- */
+.rows--3d { perspective: 1400px; }
+.rows--3d .row { transform-origin: 50% 0%; backface-visibility: hidden; }
+
+/* ---------- Ondas de choque al hacer clic ---------- */
+.shock {
+  position: fixed;
+  z-index: 60;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 1px solid var(--ice);
+  box-shadow: 0 0 24px rgba(169, 189, 242, 0.55), inset 0 0 18px rgba(169, 189, 242, 0.35);
+}
+html.is-neon .shock { border-color: #ff3fd0; box-shadow: 0 0 24px #ff3fd0; }

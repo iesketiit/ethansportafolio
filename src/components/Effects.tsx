@@ -141,6 +141,39 @@ export default function Effects() {
     };
   }, []);
 
+  // 4b. Cada clic suelta una onda de choque que se expande desde el cursor
+  useEffect(() => {
+    if (prefersReducedMotion()) return;
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      [0, 0.12].forEach((delay, i) => {
+        const ring = document.createElement("span");
+        ring.className = "shock";
+        ring.setAttribute("aria-hidden", "true");
+        ring.style.left = `${e.clientX}px`;
+        ring.style.top = `${e.clientY}px`;
+        document.body.appendChild(ring);
+        // Se anima el tamaño (no la escala) para que el borde siga siendo fino
+        gsap.set(ring, { xPercent: -50, yPercent: -50 });
+        gsap.fromTo(
+          ring,
+          { width: 0, height: 0, opacity: 1 },
+          {
+            width: i ? 150 : 240,
+            height: i ? 150 : 240,
+            opacity: 0,
+            duration: 0.9,
+            delay,
+            ease: "power3.out",
+            onComplete: () => ring.remove(),
+          },
+        );
+      });
+    };
+    window.addEventListener("pointerdown", onDown);
+    return () => window.removeEventListener("pointerdown", onDown);
+  }, []);
+
   // 5. Doble clic en cualquier parte: la firma de Ethan se estampa ahí
   useEffect(() => {
     const stamps: HTMLElement[] = [];

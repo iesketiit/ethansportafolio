@@ -25,6 +25,7 @@ const fragmentShader = /* glsl */ `
   uniform float uFog;
   uniform float uFlash;
   uniform float uClock;
+  uniform vec3 uWaves[3];
 
   vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
   vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -69,6 +70,19 @@ const fragmentShader = /* glsl */ `
     vec2 m = (uMouse - 0.5) * vec2(uRes.x / uRes.y, 1.0);
     float d = length(uv - m);
     uv += (uv - m) * 0.35 * exp(-d * 3.0);
+
+    // Ondas de choque de cada clic: deforman la tinta y dejan un anillo de luz
+    float shock = 0.0;
+    for (int i = 0; i < 3; i++) {
+      vec3 w = uWaves[i];
+      float age = uClock - w.z;
+      if (age < 0.0 || age > 2.0) continue;
+      vec2 wc = (w.xy - 0.5) * vec2(uRes.x / uRes.y, 1.0);
+      vec2 dv = uv - wc;
+      float ring = exp(-pow((length(dv) - age * 0.8) * 11.0, 2.0)) * (1.0 - age / 2.0);
+      uv += normalize(dv + 1e-4) * ring * 0.07;
+      shock += ring;
+    }
     float warp = 3.5 + uVel * 3.5;
 
     float t = uTime * 0.03;
@@ -81,6 +95,7 @@ const fragmentShader = /* glsl */ `
     float rim = smoothstep(0.62, 0.92, f) * smoothstep(0.2, 0.8, length(q));
     col += uGlow * rim * (0.18 + uNeon * 0.5);
     col += uGlow * 0.09 * exp(-d * 5.0);
+    col += uGlow * shock * (0.22 + f * 0.4);
 
     // Clima de Tokio: niebla/nubes apagan y blanquean la tinta
     col = mix(col, vec3(0.06, 0.065, 0.075) + col * 0.4, uFog);
@@ -136,6 +151,7 @@ export default function WebGLBackground() {
       uFog: { value: 0 },
       uFlash: { value: 0 },
       uClock: { value: 0 },
+      uWaves: { value: [new THREE.Vector3(0, 0, -10), new THREE.Vector3(0, 0, -10), new THREE.Vector3(0, 0, -10)] },
     };
     const geometry = new THREE.PlaneGeometry(2, 2);
     const material = new THREE.ShaderMaterial({ uniforms, vertexShader, fragmentShader });
@@ -179,8 +195,15 @@ export default function WebGLBackground() {
       }
     }
 
+    let waveIndex = 0;
+    const onDown = (e: PointerEvent) => {
+      uniforms.uWaves.value[waveIndex].set(e.clientX / window.innerWidth, 1 - e.clientY / window.innerHeight, uniforms.uClock.value);
+      waveIndex = (waveIndex + 1) % uniforms.uWaves.value.length;
+    };
+
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerdown", onDown);
 
     const reduced = prefersReducedMotion();
     let raf = 0;
@@ -261,6 +284,7 @@ export default function WebGLBackground() {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onDown);
       window.removeEventListener("deviceorientation", onTilt);
       window.removeEventListener("touchend", askPermission);
       document.removeEventListener("visibilitychange", onVisibility);
